@@ -2,6 +2,7 @@ package lexer
 
 import (
 	"main/token"
+	"strconv"
 )
 
 type Lexer struct {
@@ -30,33 +31,87 @@ func (l *Lexer) readChar() {
 
 func (l *Lexer) GetNextToken() token.Token {
 	var nextToken token.Token
+
+	l.skipWhitespace()
+	if isNumber(l.ch) {
+		nextToken = l.NumberToken()
+	} else if isLetter(l.ch) {
+		nextToken = l.literalToken()
+	} else {
+		nextToken = l.specialToken()
+	}
+
+	return nextToken
+}
+
+func (l *Lexer) skipWhitespace() {
+	for isWhitespace(l.ch) {
+		l.readChar()
+	}
+}
+
+func (l *Lexer) literalToken() token.Token {
+	p := l.position
+	for isLetter(l.ch) || isNumber(l.ch) {
+		l.readChar()
+	}
+
+	literal := l.source[p:l.position]
+	var t token.Token
+	if mt, ok := token.MapSourceToToken(literal); ok {
+		t = mt
+	} else {
+		t = token.Token{Type: token.IDENT, Literal: literal}
+	}
+
+	return t
+}
+
+func (l *Lexer) specialToken() token.Token {
+	var t token.Token
+
 	switch l.ch {
 	case '=':
-		nextToken = token.Token{Type: token.EQUAL, Literal: "="}
+		t = token.Token{Type: token.EQUAL, Literal: "="}
 	case '+':
-		nextToken = token.Token{Type: token.PLUS, Literal: "+"}
+		t = token.Token{Type: token.PLUS, Literal: "+"}
 	case '(':
-		nextToken = token.Token{Type: token.LPAREN, Literal: "("}
+		t = token.Token{Type: token.LPAREN, Literal: "("}
 	case ')':
-		nextToken = token.Token{Type: token.RPAREN, Literal: ")"}
+		t = token.Token{Type: token.RPAREN, Literal: ")"}
 	case '{':
-		nextToken = token.Token{Type: token.LBRACKET, Literal: "{"}
+		t = token.Token{Type: token.LBRACKET, Literal: "{"}
 	case '}':
-		nextToken = token.Token{Type: token.RBRACKET, Literal: "}"}
+		t = token.Token{Type: token.RBRACKET, Literal: "}"}
 	case '[':
-		nextToken = token.Token{Type: token.LSQPAREN, Literal: "["}
+		t = token.Token{Type: token.LSQPAREN, Literal: "["}
 	case ']':
-		nextToken = token.Token{Type: token.RSQPAREN, Literal: "]"}
+		t = token.Token{Type: token.RSQPAREN, Literal: "]"}
 	case ',':
-		nextToken = token.Token{Type: token.COMMA, Literal: ","}
+		t = token.Token{Type: token.COMMA, Literal: ","}
 	case ';':
-		nextToken = token.Token{Type: token.SEMICOLON, Literal: ";"}
+		t = token.Token{Type: token.SEMICOLON, Literal: ";"}
 	case 0:
-		nextToken = token.Token{Type: token.EOF, Literal: ""}
+		t = token.Token{Type: token.EOF, Literal: ""}
 	default:
-		nextToken = token.Token{Type: token.ILLEGAL, Literal: ""}
+		t = token.Token{Type: token.ILLEGAL, Literal: ""}
 	}
 
 	l.readChar()
-	return nextToken
+	return t
+}
+
+func (l *Lexer) NumberToken() token.Token {
+	p := l.position
+	for isNumber(l.ch) {
+		l.readChar()
+	}
+
+	n := l.source[p:l.position]
+	_, err := strconv.Atoi(n)
+	if err != nil {
+		return token.Token{Type: token.ILLEGAL, Literal: ""}
+	}
+
+	return token.Token{Type: token.INT, Literal: n}
 }

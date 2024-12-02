@@ -25,6 +25,7 @@ func TestGetNextTokenSpecialCharacters(t *testing.T) {
 	l := CreateLexer(input)
 	for i, et := range expected {
 		nt := l.GetNextToken()
+		// t.Log(nt)
 		if !(nt.Type == et.Type && nt.Literal == et.Literal) {
 			t.Fatalf("test[%d] - mismatch between expected and actual token - expected: %s, %s - actual: %s, %s", i, et.Type, et.Literal, nt.Type, nt.Literal)
 		}
@@ -32,7 +33,7 @@ func TestGetNextTokenSpecialCharacters(t *testing.T) {
 }
 
 func TestGetNextTokenCode(t *testing.T) {
-	input := `let five = 5;
+	input := `let    five = 5;
  let ten = 10;
  let add = fn(x, y) {
  x + y;
@@ -45,10 +46,12 @@ func TestGetNextTokenCode(t *testing.T) {
 		{Type: token.IDENT, Literal: "five"},
 		{Type: token.EQUAL, Literal: "="},
 		{Type: token.INT, Literal: "5"},
+		{Type: token.SEMICOLON, Literal: ";"},
 		{Type: token.LET, Literal: "let"},
 		{Type: token.IDENT, Literal: "ten"},
 		{Type: token.EQUAL, Literal: "="},
 		{Type: token.INT, Literal: "10"},
+		{Type: token.SEMICOLON, Literal: ";"},
 		{Type: token.LET, Literal: "let"},
 		{Type: token.IDENT, Literal: "add"},
 		{Type: token.EQUAL, Literal: "="},
@@ -81,6 +84,7 @@ func TestGetNextTokenCode(t *testing.T) {
 	l := CreateLexer(input)
 	for i, et := range expected {
 		nt := l.GetNextToken()
+		// t.Log(nt)
 		if !(nt.Type == et.Type && nt.Literal == et.Literal) {
 			t.Fatalf("test[%d] - mismatch between expected and actual token - expected: %s, %s - actual: %s, %s", i, et.Type, et.Literal, nt.Type, nt.Literal)
 		}

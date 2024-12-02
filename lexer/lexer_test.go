@@ -34,14 +34,18 @@ func TestGetNextTokenSpecialCharacters(t *testing.T) {
 
 func TestGetNextTokenCode(t *testing.T) {
 	input := `let    five = 5;
- let ten = 10;
- let add = fn(x, y) {
- x + y;
- };
- let result = add(five, ten);
- !-/*5;
- 5 < 10 > 5;
- &|%;
+let ten = 10;
+let add = fn(x, y) {
+x + y;
+};
+let result = add(five, ten);
+!-/*5;
+5 < 10 > 5;
+&|%;
+
+if(x) {return true}
+else {return false}
+for
  `
 
 	expected := []token.Token{
@@ -83,8 +87,8 @@ func TestGetNextTokenCode(t *testing.T) {
 		{Type: token.SEMICOLON, Literal: ";"},
 		{Type: token.BANG, Literal: "!"},
 		{Type: token.MINUS, Literal: "-"},
-		{Type: token.DIVIDE, Literal: "/"},
-		{Type: token.MULTIPLY, Literal: "*"},
+		{Type: token.SLASH, Literal: "/"},
+		{Type: token.ASTERISK, Literal: "*"},
 		{Type: token.INT, Literal: "5"},
 		{Type: token.SEMICOLON, Literal: ";"},
 		{Type: token.INT, Literal: "5"},
@@ -97,6 +101,20 @@ func TestGetNextTokenCode(t *testing.T) {
 		{Type: token.OR, Literal: "|"},
 		{Type: token.MODULUS, Literal: "%"},
 		{Type: token.SEMICOLON, Literal: ";"},
+		{Type: token.IF, Literal: "if"},
+		{Type: token.LPAREN, Literal: "("},
+		{Type: token.IDENTIFIER, Literal: "x"},
+		{Type: token.RPAREN, Literal: ")"},
+		{Type: token.LBRACKET, Literal: "{"},
+		{Type: token.RETURN, Literal: "return"},
+		{Type: token.TRUE, Literal: "true"},
+		{Type: token.RBRACKET, Literal: "}"},
+		{Type: token.ELSE, Literal: "else"},
+		{Type: token.LBRACKET, Literal: "{"},
+		{Type: token.RETURN, Literal: "return"},
+		{Type: token.FALSE, Literal: "false"},
+		{Type: token.RBRACKET, Literal: "}"},
+		{Type: token.FOR, Literal: "for"},
 		{Type: token.EOF, Literal: ""},
 	}
 

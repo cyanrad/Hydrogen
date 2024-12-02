@@ -13,7 +13,11 @@ const (
 	LET      = "LET"
 	FUNCTION = "FUNCTION"
 	IF       = "IF"
+	ELSE     = "ELSE"
 	FOR      = "FOR"
+	TRUE     = "TRUE"
+	FALSE    = "FALSE"
+	RETURN   = "RETURN"
 
 	// quotes
 	SINGLE_QUOTE  = "'"
@@ -35,8 +39,8 @@ const (
 	EQUAL        = "="
 	PLUS         = "+"
 	MINUS        = "-"
-	DIVIDE       = "/"
-	MULTIPLY     = "*"
+	SLASH        = "/"
+	ASTERISK     = "*"
 	MODULUS      = "%"
 	GREATER_THAN = ">"
 	LESS_THAN    = "<"
@@ -59,10 +63,14 @@ type Token struct {
 }
 
 var tokenSourceMapping map[string]Token = map[string]Token{
-	"let": {Type: LET, Literal: "let"},
-	"fn":  {Type: FUNCTION, Literal: "fn"},
-	"if":  {Type: IF, Literal: "if"},
-	"for": {Type: FOR, Literal: "for"},
+	"let":    {Type: LET, Literal: "let"},
+	"fn":     {Type: FUNCTION, Literal: "fn"},
+	"if":     {Type: IF, Literal: "if"},
+	"else":   {Type: ELSE, Literal: "else"},
+	"for":    {Type: FOR, Literal: "for"},
+	"true":   {Type: TRUE, Literal: "true"},
+	"false":  {Type: FALSE, Literal: "false"},
+	"return": {Type: RETURN, Literal: "return"},
 }
 
 func MapSourceToToken(sourceStr string) (Token, bool) {

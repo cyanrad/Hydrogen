@@ -85,11 +85,11 @@ func (l *Lexer) specialToken() token.Token {
 	case '%':
 		t = token.Token{Type: token.MODULUS, Literal: str}
 	case '*':
-		t = token.Token{Type: token.MULTIPLY, Literal: str}
+		t = token.Token{Type: token.ASTERISK, Literal: str}
 	case '-':
 		t = token.Token{Type: token.MINUS, Literal: str}
 	case '/':
-		t = token.Token{Type: token.DIVIDE, Literal: str}
+		t = token.Token{Type: token.SLASH, Literal: str}
 	case '&':
 		t = token.Token{Type: token.AND, Literal: str}
 	case '|':

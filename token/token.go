@@ -6,12 +6,18 @@ const (
 	EOF     = "EOF"
 
 	// types
-	IDENT = "IDENT" // x, y, foo, variables, ...
-	INT   = "INT"   // integers: 1,2,3,...
+	IDENTIFIER = "IDENTIFIER" // x, y, foo, variables, ...
+	INT        = "INT"        // integers: 1,2,3,...
 
 	// keywords
 	LET      = "LET"
 	FUNCTION = "FUNCTION"
+	IF       = "IF"
+	FOR      = "FOR"
+
+	// quotes
+	SINGLE_QUOTE  = "'"
+	DOUBLE_QUOTES = "\""
 
 	// delimiters
 	COMMA     = ","
@@ -25,9 +31,24 @@ const (
 	LSQPAREN = "["
 	RSQPAREN = "]"
 
-	// operators
-	EQUAL = "="
-	PLUS  = "+"
+	// math operators
+	EQUAL        = "="
+	PLUS         = "+"
+	MINUS        = "-"
+	DIVIDE       = "/"
+	MULTIPLY     = "*"
+	MODULUS      = "%"
+	GREATER_THAN = ">"
+	LESS_THAN    = "<"
+
+	// logic operators
+	AND                   = "&"
+	OR                    = "|"
+	CONDITIONAL_AND       = "&&"
+	CONDITIONAL_OR        = "||"
+	BANG                  = "!"
+	CONDITIONAL_EQUAL     = "=="
+	CONDITIONAL_NOT_EQUAL = "!="
 )
 
 type TokenType string
@@ -40,6 +61,8 @@ type Token struct {
 var tokenSourceMapping map[string]Token = map[string]Token{
 	"let": {Type: LET, Literal: "let"},
 	"fn":  {Type: FUNCTION, Literal: "fn"},
+	"if":  {Type: IF, Literal: "if"},
+	"for": {Type: FOR, Literal: "for"},
 }
 
 func MapSourceToToken(sourceStr string) (Token, bool) {

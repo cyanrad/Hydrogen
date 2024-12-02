@@ -61,7 +61,7 @@ func (l *Lexer) literalToken() token.Token {
 	if mt, ok := token.MapSourceToToken(literal); ok {
 		t = mt
 	} else {
-		t = token.Token{Type: token.IDENT, Literal: literal}
+		t = token.Token{Type: token.IDENTIFIER, Literal: literal}
 	}
 
 	return t
@@ -70,27 +70,46 @@ func (l *Lexer) literalToken() token.Token {
 func (l *Lexer) specialToken() token.Token {
 	var t token.Token
 
+	str := string(l.ch)
 	switch l.ch {
 	case '=':
-		t = token.Token{Type: token.EQUAL, Literal: "="}
+		t = token.Token{Type: token.EQUAL, Literal: str}
 	case '+':
-		t = token.Token{Type: token.PLUS, Literal: "+"}
+		t = token.Token{Type: token.PLUS, Literal: str}
+	case '<':
+		t = token.Token{Type: token.LESS_THAN, Literal: str}
+	case '>':
+		t = token.Token{Type: token.GREATER_THAN, Literal: str}
+	case '!':
+		t = token.Token{Type: token.BANG, Literal: str}
+	case '%':
+		t = token.Token{Type: token.MODULUS, Literal: str}
+	case '*':
+		t = token.Token{Type: token.MULTIPLY, Literal: str}
+	case '-':
+		t = token.Token{Type: token.MINUS, Literal: str}
+	case '/':
+		t = token.Token{Type: token.DIVIDE, Literal: str}
+	case '&':
+		t = token.Token{Type: token.AND, Literal: str}
+	case '|':
+		t = token.Token{Type: token.OR, Literal: str}
 	case '(':
-		t = token.Token{Type: token.LPAREN, Literal: "("}
+		t = token.Token{Type: token.LPAREN, Literal: str}
 	case ')':
-		t = token.Token{Type: token.RPAREN, Literal: ")"}
+		t = token.Token{Type: token.RPAREN, Literal: str}
 	case '{':
-		t = token.Token{Type: token.LBRACKET, Literal: "{"}
+		t = token.Token{Type: token.LBRACKET, Literal: str}
 	case '}':
-		t = token.Token{Type: token.RBRACKET, Literal: "}"}
+		t = token.Token{Type: token.RBRACKET, Literal: str}
 	case '[':
-		t = token.Token{Type: token.LSQPAREN, Literal: "["}
+		t = token.Token{Type: token.LSQPAREN, Literal: str}
 	case ']':
-		t = token.Token{Type: token.RSQPAREN, Literal: "]"}
+		t = token.Token{Type: token.RSQPAREN, Literal: str}
 	case ',':
-		t = token.Token{Type: token.COMMA, Literal: ","}
+		t = token.Token{Type: token.COMMA, Literal: str}
 	case ';':
-		t = token.Token{Type: token.SEMICOLON, Literal: ";"}
+		t = token.Token{Type: token.SEMICOLON, Literal: str}
 	case 0:
 		t = token.Token{Type: token.EOF, Literal: ""}
 	default:

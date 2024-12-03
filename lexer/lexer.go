@@ -2,7 +2,6 @@ package lexer
 
 import (
 	"main/token"
-	"strconv"
 )
 
 type Lexer struct {
@@ -58,7 +57,7 @@ func (l *Lexer) literalToken() token.Token {
 
 	literal := l.source[p:l.position]
 	var t token.Token
-	if mt, ok := token.MapSourceToToken(literal); ok {
+	if mt, ok := token.MapSourceToKeyword(literal); ok {
 		t = mt
 	} else {
 		t = token.Token{Type: token.IDENTIFIER, Literal: literal}
@@ -68,55 +67,23 @@ func (l *Lexer) literalToken() token.Token {
 }
 
 func (l *Lexer) specialToken() token.Token {
-	var t token.Token
-
-	str := string(l.ch)
-	switch l.ch {
-	case '=':
-		t = token.Token{Type: token.EQUAL, Literal: str}
-	case '+':
-		t = token.Token{Type: token.PLUS, Literal: str}
-	case '<':
-		t = token.Token{Type: token.LESS_THAN, Literal: str}
-	case '>':
-		t = token.Token{Type: token.GREATER_THAN, Literal: str}
-	case '!':
-		t = token.Token{Type: token.BANG, Literal: str}
-	case '%':
-		t = token.Token{Type: token.MODULUS, Literal: str}
-	case '*':
-		t = token.Token{Type: token.ASTERISK, Literal: str}
-	case '-':
-		t = token.Token{Type: token.MINUS, Literal: str}
-	case '/':
-		t = token.Token{Type: token.SLASH, Literal: str}
-	case '&':
-		t = token.Token{Type: token.AND, Literal: str}
-	case '|':
-		t = token.Token{Type: token.OR, Literal: str}
-	case '(':
-		t = token.Token{Type: token.LPAREN, Literal: str}
-	case ')':
-		t = token.Token{Type: token.RPAREN, Literal: str}
-	case '{':
-		t = token.Token{Type: token.LBRACKET, Literal: str}
-	case '}':
-		t = token.Token{Type: token.RBRACKET, Literal: str}
-	case '[':
-		t = token.Token{Type: token.LSQPAREN, Literal: str}
-	case ']':
-		t = token.Token{Type: token.RSQPAREN, Literal: str}
-	case ',':
-		t = token.Token{Type: token.COMMA, Literal: str}
-	case ';':
-		t = token.Token{Type: token.SEMICOLON, Literal: str}
-	case 0:
+	t := token.Token{Type: token.ILLEGAL, Literal: string(l.ch)}
+	if l.readPosition > len(l.source) {
 		t = token.Token{Type: token.EOF, Literal: ""}
-	default:
-		t = token.Token{Type: token.ILLEGAL, Literal: ""}
 	}
 
-	l.readChar()
+	for p := l.position; l.readPosition <= len(l.source); l.readChar() {
+		if mt, ok := token.MapSourceToSpecial(l.source[p:l.readPosition]); ok {
+			t = mt
+		} else {
+			break
+		}
+	}
+
+	// this is so stupid - to handle when pointer movement when an illegal character
+	if t.Type == token.ILLEGAL {
+		l.readChar()
+	}
 	return t
 }
 
@@ -127,10 +94,5 @@ func (l *Lexer) NumberToken() token.Token {
 	}
 
 	n := l.source[p:l.position]
-	_, err := strconv.Atoi(n)
-	if err != nil {
-		return token.Token{Type: token.ILLEGAL, Literal: ""}
-	}
-
 	return token.Token{Type: token.INT, Literal: n}
 }

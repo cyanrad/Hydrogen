@@ -46,6 +46,11 @@ let result = add(five, ten);
 if(x) {return true}
 else {return false}
 for
+
+^
+== != < <>>
+===
++=-=++--&&||>=<=
  `
 
 	expected := []token.Token{
@@ -115,6 +120,23 @@ for
 		{Type: token.FALSE, Literal: "false"},
 		{Type: token.RBRACKET, Literal: "}"},
 		{Type: token.FOR, Literal: "for"},
+		{Type: token.ILLEGAL, Literal: "^"},
+		{Type: token.CONDITIONAL_EQUAL, Literal: "=="},
+		{Type: token.CONDITIONAL_NOT_EQUAL, Literal: "!="},
+		{Type: token.LESS_THAN, Literal: "<"},
+		{Type: token.LESS_THAN, Literal: "<"},
+		{Type: token.GREATER_THAN, Literal: ">"},
+		{Type: token.GREATER_THAN, Literal: ">"},
+		{Type: token.CONDITIONAL_EQUAL, Literal: "=="},
+		{Type: token.EQUAL, Literal: "="},
+		{Type: token.PLUS_EQUAL, Literal: "+="},
+		{Type: token.MINUS_EQUAL, Literal: "-="},
+		{Type: token.INCREMENT, Literal: "++"},
+		{Type: token.DECREMENT, Literal: "--"},
+		{Type: token.CONDITIONAL_AND, Literal: "&&"},
+		{Type: token.CONDITIONAL_OR, Literal: "||"},
+		{Type: token.GREATER_THAN_EQUAL, Literal: ">="},
+		{Type: token.LESS_THAN_EQUAL, Literal: "<="},
 		{Type: token.EOF, Literal: ""},
 	}
 

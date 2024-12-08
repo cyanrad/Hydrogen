@@ -28,19 +28,31 @@ func (p *Program) TokenLiteral() string {
 }
 
 type LetStatement struct {
-	Statement
-	Token token.Token // token.Let
-	Name  *IdentifierExpression
-	Value Expression
+	// Statement
+	Token      token.Token // token.LET
+	Identifier IdentifierExpression
+	Expression Expression
 }
 
-func (ls *LetStatement) TokenLiteral() string { return ls.Token.Literal }
-func (ls *LetStatement) statementNode()       {}
+func (ls LetStatement) TokenLiteral() string { return ls.Token.Literal }
+func (ls LetStatement) statementNode()       {}
 
 type IdentifierExpression struct {
-	Expression
+	// Expression
 	Token token.Token // token.Identifier + name
 }
 
-func (ie *IdentifierExpression) TokenLiteral() string { return ie.Token.Literal }
-func (ie *IdentifierExpression) expressionNode()      {}
+func (ie IdentifierExpression) TokenLiteral() string { return ie.Token.Literal }
+func (ie IdentifierExpression) expressionNode()      {}
+
+type IntExpression struct {
+	// Expression
+	Token token.Token // token.INT + value
+}
+
+func (ie IntExpression) TokenLiteral() string { return ie.Token.Literal }
+func (ie IntExpression) expressionNode()      {}
+
+type MathExpression struct {
+	Expression
+}

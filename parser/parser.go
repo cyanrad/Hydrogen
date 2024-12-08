@@ -40,12 +40,17 @@ func (p *Parser) ParseProgram() (ast.Program, error) {
 			prog.Statements = append(prog.Statements, s)
 		}
 
+		if p.currToken.Type != token.SEMICOLON {
+			return ast.Program{}, fmt.Errorf("error - expected: ; - found: %v", p.currToken)
+		}
 		p.nextToken()
 	}
 
 	return prog, nil
 }
 
+// you can assume that the parse functions have the currToken as the first token in it
+// you can assume that by the end that the currtoken should equal to ;
 func (p *Parser) parseLetStatement() (ast.LetStatement, error) {
 	letToken := p.currToken
 
@@ -61,11 +66,13 @@ func (p *Parser) parseLetStatement() (ast.LetStatement, error) {
 		return ast.LetStatement{}, fmt.Errorf("error - expected: = operator - found: %v", assignToken)
 	}
 
+	p.nextToken()
 	exp, err := p.parseMathExpression()
 	if err != nil {
 		return ast.LetStatement{}, err
 	}
 
+	p.nextToken()
 	return ast.LetStatement{
 			Token:      letToken,
 			Identifier: ast.IdentifierExpression{Token: identToken},
@@ -75,7 +82,6 @@ func (p *Parser) parseLetStatement() (ast.LetStatement, error) {
 }
 
 func (p *Parser) parseMathExpression() (ast.IntExpression, error) {
-	p.nextToken()
 	intToken := p.currToken
 	if intToken.Type != token.INT {
 		return ast.IntExpression{}, fmt.Errorf("error - expected: int - found: %v", intToken)

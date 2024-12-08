@@ -8,8 +8,9 @@ import (
 	"testing"
 )
 
-func TestParserSimple(t *testing.T) {
-	input := "let x = 10;"
+func TestParserSimpleLet(t *testing.T) {
+	input := `let x = 10; 
+let y = 5;`
 	l := lexer.CreateLexer(input)
 	p := CreateParser(l)
 
@@ -27,6 +28,15 @@ func TestParserSimple(t *testing.T) {
 				},
 				Expression: ast.IntExpression{
 					Token: token.Token{Type: token.INT, Literal: "10"},
+				},
+			},
+			ast.LetStatement{
+				Token: token.Token{Type: token.LET, Literal: "let"},
+				Identifier: ast.IdentifierExpression{
+					Token: token.Token{Type: token.IDENTIFIER, Literal: "y"},
+				},
+				Expression: ast.IntExpression{
+					Token: token.Token{Type: token.INT, Literal: "5"},
 				},
 			},
 		},

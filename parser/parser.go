@@ -7,6 +7,14 @@ import (
 	"main/token"
 )
 
+var legalMathOperators = map[token.TokenType]struct{}{
+	token.MODULUS:  {},
+	token.ASTERISK: {},
+	token.SLASH:    {},
+	token.PLUS:     {},
+	token.MINUS:    {},
+}
+
 type Parser struct {
 	l *lexer.Lexer
 
@@ -41,7 +49,7 @@ func (p *Parser) ParseProgram() (ast.Program, error) {
 		}
 
 		if p.currToken.Type != token.SEMICOLON {
-			return ast.Program{}, fmt.Errorf("error - expected: ; - found: %v", p.currToken)
+			return ast.Program{}, fmt.Errorf("error - expected: ; - got: %v", p.currToken)
 		}
 		p.nextToken()
 	}
@@ -57,19 +65,25 @@ func (p *Parser) parseLetStatement() (ast.LetStatement, error) {
 	p.nextToken()
 	identToken := p.currToken
 	if identToken.Type != token.IDENTIFIER {
-		return ast.LetStatement{}, fmt.Errorf("error - expected: identifier token after let - found: %v", identToken)
+		return ast.LetStatement{}, fmt.Errorf("error - expected: identifier token after let - got: %v", identToken)
 	}
 
 	p.nextToken()
 	assignToken := p.currToken
 	if assignToken.Type != token.EQUAL {
-		return ast.LetStatement{}, fmt.Errorf("error - expected: = operator - found: %v", assignToken)
+		return ast.LetStatement{}, fmt.Errorf("error - expected: = operator - got: %v", assignToken)
 	}
 
 	p.nextToken()
-	exp, err := p.parseMathExpression()
-	if err != nil {
-		return ast.LetStatement{}, err
+	var exp ast.IntExpression
+	var err error
+	if p.currToken.Type == token.INT {
+		exp, err = p.parseMathExpression()
+		if err != nil {
+			return ast.LetStatement{}, err
+		}
+	} else {
+		return ast.LetStatement{}, fmt.Errorf("error - expected: expression - got: %v", p.currToken)
 	}
 
 	p.nextToken()
@@ -84,7 +98,7 @@ func (p *Parser) parseLetStatement() (ast.LetStatement, error) {
 func (p *Parser) parseMathExpression() (ast.IntExpression, error) {
 	intToken := p.currToken
 	if intToken.Type != token.INT {
-		return ast.IntExpression{}, fmt.Errorf("error - expected: int - found: %v", intToken)
+		return ast.IntExpression{}, fmt.Errorf("error - expected: int - got: %v", intToken)
 	}
 
 	return ast.IntExpression{Token: intToken}, nil

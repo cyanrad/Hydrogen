@@ -19,6 +19,11 @@ let y = 5;`
 		t.Fatal(err)
 	}
 
+	statementCount := 2
+	if len(prog.Statements) != statementCount {
+		t.Fatalf("error - expected: %d - got: %d", statementCount, len(prog.Statements))
+	}
+
 	expectedProg := ast.Program{
 		Statements: []ast.Statement{
 			ast.LetStatement{

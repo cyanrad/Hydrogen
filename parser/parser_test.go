@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"errors"
 	"main/ast"
 	"main/lexer"
 	"main/token"
@@ -15,13 +16,13 @@ let y = 5;`
 	p := CreateParser(l)
 
 	prog, err := p.ParseProgram()
-	if err != nil {
+	if len(err) != 0 {
 		t.Fatal(err)
 	}
 
 	statementCount := 2
 	if len(prog.Statements) != statementCount {
-		t.Fatalf("error - expected: %d - got: %d", statementCount, len(prog.Statements))
+		t.Fatalf("error - expected: %d statements - got: %d", statementCount, len(prog.Statements))
 	}
 
 	expectedProg := ast.Program{
@@ -47,6 +48,44 @@ let y = 5;`
 		},
 	}
 
+	if ok := reflect.DeepEqual(prog, expectedProg); !ok {
+		t.Fatalf("expected: %v - got: %v", expectedProg, prog)
+	}
+}
+
+func TestParserSimpleLetError(t *testing.T) {
+	input := `let x 5;
+ let = 10;
+ let 838383;
+ let x = 10a;
+ let x = sdlfj;`
+	l := lexer.CreateLexer(input)
+	p := CreateParser(l)
+
+	prog, err := p.ParseProgram()
+
+	errorCount := 5
+	if len(err) != errorCount {
+		t.Fatalf("error - expected: %d errors - got: %d", errorCount, len(err))
+	}
+
+	expectedErr := []error{
+		errors.New("error - expected: = - got: INT"),
+		errors.New("error - expected: IDENTIFIER - got: ="),
+		errors.New("error - expected: IDENTIFIER - got: INT"),
+		errors.New("error - expected: ; - got: IDENTIFIER"),
+		errors.New("error - expected: expression - got: IDENTIFIER"),
+	}
+	if ok := reflect.DeepEqual(err, expectedErr); !ok {
+		t.Fatalf("expected: %v - got: %v", expectedErr, err)
+	}
+
+	statementCount := 0
+	if len(prog.Statements) != statementCount {
+		t.Fatalf("error - expected: %d statements - got: %d", statementCount, len(prog.Statements))
+	}
+
+	expectedProg := ast.Program{Statements: []ast.Statement{}}
 	if ok := reflect.DeepEqual(prog, expectedProg); !ok {
 		t.Fatalf("expected: %v - got: %v", expectedProg, prog)
 	}

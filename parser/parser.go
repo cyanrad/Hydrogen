@@ -78,12 +78,8 @@ func (p *Parser) parseLetStatement() (ast.LetStatement, error) {
 
 	p.nextToken()
 	var valueExp ast.IntExpression
-	var err error
 	if p.currTokenIs(token.INT) {
-		valueExp, err = p.parseMathExpression()
-		if err != nil {
-			return ast.LetStatement{}, err
-		}
+		valueExp, _ = p.parseMathExpression()
 	} else {
 		return ast.LetStatement{}, fmt.Errorf("error - expected: expression - got: %s", p.currToken.Type)
 	}
@@ -103,9 +99,5 @@ func (p *Parser) parseLetStatement() (ast.LetStatement, error) {
 
 func (p *Parser) parseMathExpression() (ast.IntExpression, error) {
 	intToken := p.currToken
-	if intToken.Type != token.INT {
-		return ast.IntExpression{}, fmt.Errorf("error - expected: int - got: %v", intToken)
-	}
-
 	return ast.IntExpression{Token: intToken}, nil
 }

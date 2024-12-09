@@ -37,6 +37,15 @@ type LetStatement struct {
 func (ls LetStatement) TokenLiteral() string { return ls.Token.Literal }
 func (ls LetStatement) statementNode()       {}
 
+type ReturnStatement struct {
+	// Statement
+	Token      token.Token // token.RETURN
+	Expression Expression
+}
+
+func (rs ReturnStatement) TokenLiteral() string { return rs.Token.Literal }
+func (rs ReturnStatement) statementNode()       {}
+
 type IdentifierExpression struct {
 	// Expression
 	Token token.Token // token.Identifier + name
@@ -52,7 +61,3 @@ type IntExpression struct {
 
 func (ie IntExpression) TokenLiteral() string { return ie.Token.Literal }
 func (ie IntExpression) expressionNode()      {}
-
-type MathExpression struct {
-	Expression
-}

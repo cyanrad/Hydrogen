@@ -45,6 +45,8 @@ func (p *Parser) ParseProgram() (ast.Program, []error) {
 		var err error
 		if p.currTokenIs(token.LET) {
 			s, err = p.parseLetStatement()
+		} else if p.currTokenIs(token.RETURN) {
+			s, err = p.parseReturnStatement()
 		}
 
 		if err != nil {
@@ -93,6 +95,31 @@ func (p *Parser) parseLetStatement() (ast.LetStatement, error) {
 			Token:      letToken,
 			Identifier: identExp,
 			Expression: valueExp,
+		},
+		nil
+}
+
+func (p *Parser) parseReturnStatement() (ast.ReturnStatement, error) {
+	returnToken := p.currToken
+
+	p.nextToken()
+	var exp ast.Expression
+	if p.currTokenIs(token.IDENTIFIER) {
+		exp = ast.IdentifierExpression{Token: p.currToken}
+	} else if p.currTokenIs(token.INT) {
+		exp, _ = p.parseMathExpression()
+	} else {
+		return ast.ReturnStatement{}, fmt.Errorf("error - expected: expression - got: %s", p.currToken.Type)
+	}
+
+	p.nextToken()
+	if !p.currTokenIs(token.SEMICOLON) {
+		return ast.ReturnStatement{}, p.badTokenTypeError(token.SEMICOLON)
+	}
+
+	return ast.ReturnStatement{
+			Token:      returnToken,
+			Expression: exp,
 		},
 		nil
 }

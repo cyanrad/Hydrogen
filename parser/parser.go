@@ -7,19 +7,19 @@ import (
 	"main/token"
 )
 
-var legalMathOperators = map[token.TokenType]struct{}{
-	token.MODULUS:  {},
-	token.ASTERISK: {},
-	token.SLASH:    {},
-	token.PLUS:     {},
-	token.MINUS:    {},
-}
+type (
+	prefixParseFn func() ast.Expression
+	infixParseFn  func(ast.Expression) ast.Expression
+)
 
 type Parser struct {
 	l *lexer.Lexer
 
 	currToken token.Token
 	peekToken token.Token
+
+	prefixParseFns map[token.TokenType]prefixParseFn
+	infixParseFns  map[token.TokenType]infixParseFn
 }
 
 func CreateParser(l *lexer.Lexer) Parser {

@@ -1,9 +1,13 @@
 package ast
 
-import "main/token"
+import (
+	"main/token"
+	"strings"
+)
 
 type Node interface {
 	TokenLiteral() string
+	String() string
 }
 type Statement interface {
 	Node
@@ -27,6 +31,18 @@ func (p *Program) TokenLiteral() string {
 	}
 }
 
+func (p *Program) String() string {
+	var sb strings.Builder
+	for i, s := range p.Statements {
+		sb.WriteString(s.String())
+
+		if i < len(p.Statements)-1 {
+			sb.WriteString("\n")
+		}
+	}
+	return sb.String()
+}
+
 type LetStatement struct {
 	// Statement
 	Token      token.Token // token.LET
@@ -36,6 +52,18 @@ type LetStatement struct {
 
 func (ls LetStatement) TokenLiteral() string { return ls.Token.Literal }
 func (ls LetStatement) statementNode()       {}
+func (ls LetStatement) String() string {
+	var sb strings.Builder
+
+	sb.WriteString(ls.TokenLiteral())
+	sb.WriteString(" ")
+	sb.WriteString(ls.Identifier.TokenLiteral())
+	sb.WriteString(" = ")
+	sb.WriteString(ls.Expression.TokenLiteral())
+	sb.WriteString(";")
+
+	return sb.String()
+}
 
 type ReturnStatement struct {
 	// Statement
@@ -45,6 +73,16 @@ type ReturnStatement struct {
 
 func (rs ReturnStatement) TokenLiteral() string { return rs.Token.Literal }
 func (rs ReturnStatement) statementNode()       {}
+func (rs ReturnStatement) String() string {
+	var sb strings.Builder
+
+	sb.WriteString(rs.TokenLiteral())
+	sb.WriteString(" ")
+	sb.WriteString(rs.Expression.String())
+	sb.WriteString(";")
+
+	return sb.String()
+}
 
 type IdentifierExpression struct {
 	// Expression
@@ -53,6 +91,7 @@ type IdentifierExpression struct {
 
 func (ie IdentifierExpression) TokenLiteral() string { return ie.Token.Literal }
 func (ie IdentifierExpression) expressionNode()      {}
+func (ie IdentifierExpression) String() string       { return ie.TokenLiteral() }
 
 type IntExpression struct {
 	// Expression
@@ -61,3 +100,14 @@ type IntExpression struct {
 
 func (ie IntExpression) TokenLiteral() string { return ie.Token.Literal }
 func (ie IntExpression) expressionNode()      {}
+func (ie IntExpression) String() string       { return ie.TokenLiteral() }
+
+type ExpressionStatement struct {
+	// Statement
+	Token      token.Token // the first token of the expression
+	Expression Expression
+}
+
+func (es ExpressionStatement) TokenLiteral() string { return es.Token.Literal }
+func (es ExpressionStatement) expressionNode()      {}
+func (es ExpressionStatement) String() string       { return "" }

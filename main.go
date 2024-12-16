@@ -15,6 +15,7 @@ import (
 // - support unicode
 // - add file name and line
 // - support float, hex, oct, bin numbers
+// - postfix in parser
 
 const PROMPT = ">> "
 

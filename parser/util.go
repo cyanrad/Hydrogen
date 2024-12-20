@@ -5,6 +5,17 @@ import (
 	"main/token"
 )
 
+const (
+	_           int = iota
+	LOWEST          // _ (black identifier)
+	EQUALS          // ==
+	LESSGREATER     // > or <
+	SUM             // +
+	PRODUCT         // *
+	PREFIX          // -x or !x
+	CALL            // myFunc(x)
+)
+
 func (p *Parser) badTokenTypeError(expected token.TokenType) error {
 	return fmt.Errorf("error - expected: %s - got: %s", expected, p.currToken.Type)
 }

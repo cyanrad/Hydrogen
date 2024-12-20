@@ -174,7 +174,7 @@ func TestExpressionStatements(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	statementCount := 1
+	statementCount := 2
 	if len(prog.Statements) != statementCount {
 		t.Fatalf("error - expected: %d statements - got: %d", statementCount, len(prog.Statements))
 	}
@@ -185,6 +185,12 @@ func TestExpressionStatements(t *testing.T) {
 				Token: token.Token{Type: token.IDENTIFIER, Literal: "foobar"},
 				Expression: ast.IdentifierExpression{
 					Token: token.Token{Type: token.IDENTIFIER, Literal: "foobar"},
+				},
+			},
+			ast.ExpressionStatement{
+				Token: token.Token{Type: token.INT, Literal: "5"},
+				Expression: ast.IntExpression{
+					Token: token.Token{Type: token.INT, Literal: "5"},
 				},
 			},
 		},

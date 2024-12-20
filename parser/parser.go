@@ -5,6 +5,7 @@ import (
 	"main/ast"
 	"main/lexer"
 	"main/token"
+	"strconv"
 )
 
 type (
@@ -143,17 +144,36 @@ func (p *Parser) parseExpressionStatement() (ast.ExpressionStatement, error) {
 
 func (p *Parser) parseExpression() (ast.Expression, error) {
 	var exp ast.Expression
+	var err error
 	if p.currTokenIs(token.IDENTIFIER) {
-		exp = ast.IdentifierExpression{
-			Token: token.Token{Type: token.IDENTIFIER, Literal: p.currToken.Literal},
-		}
+		exp = p.parseIdentifierExpression()
 	} else if p.currTokenIs(token.INT) {
-		exp = ast.IntExpression{
-			Token: token.Token{Type: token.INT, Literal: p.currToken.Literal},
-		}
+		exp, err = p.parseIntExpression()
 	} else {
 		return nil, fmt.Errorf("error - expected: expression - got: %s", p.currToken.Type)
 	}
 
+	if err != nil {
+		return nil, err
+	}
 	return exp, nil
+}
+
+func (p *Parser) parseIdentifierExpression() ast.IdentifierExpression {
+	return ast.IdentifierExpression{
+		Token: token.Token{Type: token.IDENTIFIER, Literal: p.currToken.Literal},
+	}
+}
+
+func (p *Parser) parseIntExpression() (ast.IntExpression, error) {
+	// checking if it's parsable first
+	_, err := strconv.ParseInt(p.currToken.Literal, 0, 64)
+	if err != nil {
+		return ast.IntExpression{}, fmt.Errorf("error - could not parse %q as integer", p.currToken.Literal)
+	}
+
+	return ast.IntExpression{
+		Token: token.Token{Type: token.INT, Literal: p.currToken.Literal},
+	}, nil
+
 }

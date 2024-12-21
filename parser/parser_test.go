@@ -163,7 +163,7 @@ return =`
 	}
 }
 
-func TestExpressionStatements(t *testing.T) {
+func TestBasicExpressionStatements(t *testing.T) {
 	input := `foobar;
 5;`
 	l := lexer.CreateLexer(input)
@@ -191,6 +191,70 @@ func TestExpressionStatements(t *testing.T) {
 				Token: token.Token{Type: token.INT, Literal: "5"},
 				Expression: ast.IntExpression{
 					Token: token.Token{Type: token.INT, Literal: "5"},
+				},
+			},
+		},
+	}
+
+	if ok := reflect.DeepEqual(prog, expectedProg); !ok {
+		t.Fatalf("expected: %v - got: %v", expectedProg, prog)
+	}
+}
+
+func TestPrefixExpressionStatements(t *testing.T) {
+	input := `!5;
+-15;
+++foobar;
+--x;`
+	l := lexer.CreateLexer(input)
+	p := CreateParser(l)
+
+	prog, err := p.ParseProgram()
+	if len(err) != 0 {
+		t.Fatal(err)
+	}
+
+	statementCount := 4
+	if len(prog.Statements) != statementCount {
+		t.Fatalf("error - expected: %d statements - got: %d", statementCount, len(prog.Statements))
+	}
+
+	expectedProg := ast.Program{
+		Statements: []ast.Statement{
+			ast.ExpressionStatement{
+				Token: token.Token{Type: token.BANG, Literal: "!"},
+				Expression: ast.PrefixExpression{
+					Token: token.Token{Type: token.BANG, Literal: "!"},
+					Expression: ast.IntExpression{
+						Token: token.Token{Type: token.INT, Literal: "5"},
+					},
+				},
+			},
+			ast.ExpressionStatement{
+				Token: token.Token{Type: token.MINUS, Literal: "-"},
+				Expression: ast.PrefixExpression{
+					Token: token.Token{Type: token.MINUS, Literal: "-"},
+					Expression: ast.IntExpression{
+						Token: token.Token{Type: token.INT, Literal: "15"},
+					},
+				},
+			},
+			ast.ExpressionStatement{
+				Token: token.Token{Type: token.INCREMENT, Literal: "++"},
+				Expression: ast.PrefixExpression{
+					Token: token.Token{Type: token.INCREMENT, Literal: "++"},
+					Expression: ast.IdentifierExpression{
+						Token: token.Token{Type: token.IDENTIFIER, Literal: "foobar"},
+					},
+				},
+			},
+			ast.ExpressionStatement{
+				Token: token.Token{Type: token.DECREMENT, Literal: "--"},
+				Expression: ast.PrefixExpression{
+					Token: token.Token{Type: token.DECREMENT, Literal: "--"},
+					Expression: ast.IdentifierExpression{
+						Token: token.Token{Type: token.IDENTIFIER, Literal: "x"},
+					},
 				},
 			},
 		},

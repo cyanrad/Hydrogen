@@ -149,6 +149,8 @@ func (p *Parser) parseExpression() (ast.Expression, error) {
 		exp = p.parseIdentifierExpression()
 	} else if p.currTokenIs(token.INT) {
 		exp, err = p.parseIntExpression()
+	} else if p.currTokenIsLegalPrefix() {
+		exp, err = p.parsePrefixExpression()
 	} else {
 		return nil, fmt.Errorf("error - expected: expression - got: %s", p.currToken.Type)
 	}
@@ -175,5 +177,19 @@ func (p *Parser) parseIntExpression() (ast.IntExpression, error) {
 	return ast.IntExpression{
 		Token: token.Token{Type: token.INT, Literal: p.currToken.Literal},
 	}, nil
+}
 
+func (p *Parser) parsePrefixExpression() (ast.PrefixExpression, error) {
+	operator := p.currToken
+
+	p.nextToken()
+	exp, err := p.parseExpression()
+	if err != nil {
+		return ast.PrefixExpression{}, err
+	}
+
+	return ast.PrefixExpression{
+		Token:      operator,
+		Expression: exp,
+	}, nil
 }

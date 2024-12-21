@@ -111,3 +111,43 @@ type ExpressionStatement struct {
 func (es ExpressionStatement) TokenLiteral() string { return es.Token.Literal }
 func (es ExpressionStatement) statementNode()       {}
 func (es ExpressionStatement) String() string       { return "" }
+
+type PrefixExpression struct {
+	// Expression
+	Token      token.Token // operator toke (e.g. MINUS, EXCLAMATION)
+	Expression Expression
+}
+
+func (pe PrefixExpression) TokenLiteral() string { return pe.Token.Literal }
+func (pe PrefixExpression) expressionNode()      {}
+func (pe PrefixExpression) String() string {
+	var sb strings.Builder
+
+	sb.WriteString("(")
+	sb.WriteString(pe.TokenLiteral())
+	sb.WriteString(pe.Expression.String())
+	sb.WriteString(");")
+
+	return sb.String()
+}
+
+type InfixExpression struct {
+	// Expression
+	Token token.Token // operator toke (e.g. MINUS, EXCLAMATION)
+	Left  Expression
+	Right Expression
+}
+
+func (ie InfixExpression) TokenLiteral() string { return ie.Token.Literal }
+func (ie InfixExpression) expressionNode()      {}
+func (ie InfixExpression) String() string {
+	var sb strings.Builder
+
+	sb.WriteString("(")
+	sb.WriteString(ie.Left.String())
+	sb.WriteString(ie.TokenLiteral())
+	sb.WriteString(ie.Right.String())
+	sb.WriteString(");")
+
+	return sb.String()
+}

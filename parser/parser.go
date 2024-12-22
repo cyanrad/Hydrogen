@@ -8,19 +8,11 @@ import (
 	"strconv"
 )
 
-type (
-	prefixParseFn func() ast.Expression
-	infixParseFn  func(ast.Expression) ast.Expression
-)
-
 type Parser struct {
 	l *lexer.Lexer
 
 	currToken token.Token
 	peekToken token.Token
-
-	prefixParseFns map[token.TokenType]prefixParseFn
-	infixParseFns  map[token.TokenType]infixParseFn
 }
 
 func CreateParser(l *lexer.Lexer) Parser {
@@ -84,7 +76,7 @@ func (p *Parser) parseLetStatement() (ast.LetStatement, error) {
 	}
 	p.nextToken()
 
-	valueExp, err := p.parseExpression()
+	valueExp, err := p.parseExpression(LOWEST)
 	if err != nil {
 		return ast.LetStatement{}, err
 	}
@@ -106,7 +98,7 @@ func (p *Parser) parseReturnStatement() (ast.ReturnStatement, error) {
 	returnToken := p.currToken
 	p.nextToken()
 
-	exp, err := p.parseExpression()
+	exp, err := p.parseExpression(LOWEST)
 	if err != nil {
 		return ast.ReturnStatement{}, err
 	}
@@ -126,7 +118,7 @@ func (p *Parser) parseReturnStatement() (ast.ReturnStatement, error) {
 func (p *Parser) parseExpressionStatement() (ast.ExpressionStatement, error) {
 	firstToken := p.currToken
 
-	exp, err := p.parseExpression()
+	exp, err := p.parseExpression(LOWEST)
 	if err != nil {
 		return ast.ExpressionStatement{}, err
 	}
@@ -142,15 +134,16 @@ func (p *Parser) parseExpressionStatement() (ast.ExpressionStatement, error) {
 	}, nil
 }
 
-func (p *Parser) parseExpression() (ast.Expression, error) {
+func (p *Parser) parseExpression(precedence int) (ast.Expression, error) {
 	var exp ast.Expression
 	var err error
-	if p.currTokenIs(token.IDENTIFIER) {
+
+	if p.currTokenIsLegalPrefix() {
+		exp, err = p.parsePrefixExpression()
+	} else if p.currTokenIs(token.IDENTIFIER) {
 		exp = p.parseIdentifierExpression()
 	} else if p.currTokenIs(token.INT) {
 		exp, err = p.parseIntExpression()
-	} else if p.currTokenIsLegalPrefix() {
-		exp, err = p.parsePrefixExpression()
 	} else {
 		return nil, fmt.Errorf("error - expected: expression - got: %s", p.currToken.Type)
 	}
@@ -158,6 +151,14 @@ func (p *Parser) parseExpression() (ast.Expression, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	for IsLegalInfixOperator(p.peekToken.Type) && precedence < p.peekPrecedence() {
+		exp, err = p.parseInfixExpression(exp)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	return exp, nil
 }
 
@@ -183,7 +184,7 @@ func (p *Parser) parsePrefixExpression() (ast.PrefixExpression, error) {
 	operator := p.currToken
 
 	p.nextToken()
-	exp, err := p.parseExpression()
+	exp, err := p.parseExpression(PREFIX)
 	if err != nil {
 		return ast.PrefixExpression{}, err
 	}
@@ -191,5 +192,24 @@ func (p *Parser) parsePrefixExpression() (ast.PrefixExpression, error) {
 	return ast.PrefixExpression{
 		Token:      operator,
 		Expression: exp,
+	}, nil
+}
+
+func (p *Parser) parseInfixExpression(left ast.Expression) (ast.InfixExpression, error) {
+	p.nextToken()
+
+	precedence := p.currPrecedence()
+	operator := p.currToken
+	p.nextToken()
+
+	right, err := p.parseExpression(precedence)
+	if err != nil {
+		return ast.InfixExpression{}, err
+	}
+
+	return ast.InfixExpression{
+		Token: operator,
+		Left:  left,
+		Right: right,
 	}, nil
 }

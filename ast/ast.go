@@ -110,7 +110,7 @@ type ExpressionStatement struct {
 
 func (es ExpressionStatement) TokenLiteral() string { return es.Token.Literal }
 func (es ExpressionStatement) statementNode()       {}
-func (es ExpressionStatement) String() string       { return "" }
+func (es ExpressionStatement) String() string       { return es.Expression.String() + ";" }
 
 type PrefixExpression struct {
 	// Expression
@@ -126,7 +126,7 @@ func (pe PrefixExpression) String() string {
 	sb.WriteString("(")
 	sb.WriteString(pe.TokenLiteral())
 	sb.WriteString(pe.Expression.String())
-	sb.WriteString(");")
+	sb.WriteString(")")
 
 	return sb.String()
 }
@@ -145,9 +145,11 @@ func (ie InfixExpression) String() string {
 
 	sb.WriteString("(")
 	sb.WriteString(ie.Left.String())
+	sb.WriteString(" ")
 	sb.WriteString(ie.TokenLiteral())
+	sb.WriteString(" ")
 	sb.WriteString(ie.Right.String())
-	sb.WriteString(");")
+	sb.WriteString(")")
 
 	return sb.String()
 }

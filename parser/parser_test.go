@@ -11,18 +11,16 @@ import (
 
 func TestLetStatement(t *testing.T) {
 	input := `let x = 10; 
-let y = 5;`
+let y = 5;
+let xyz = true;
+let zyx = false;
+let exp = 5 + 10 * 12;`
 	l := lexer.CreateLexer(input)
 	p := CreateParser(l)
 
 	prog, err := p.ParseProgram()
 	if len(err) != 0 {
 		t.Fatal(err)
-	}
-
-	statementCount := 2
-	if len(prog.Statements) != statementCount {
-		t.Fatalf("error - expected: %d statements - got: %d", statementCount, len(prog.Statements))
 	}
 
 	expectedProg := ast.Program{
@@ -45,7 +43,51 @@ let y = 5;`
 					Token: token.Token{Type: token.INT, Literal: "5"},
 				},
 			},
+			ast.LetStatement{
+				Token: token.Token{Type: token.LET, Literal: "let"},
+				Identifier: ast.IdentifierExpression{
+					Token: token.Token{Type: token.IDENTIFIER, Literal: "xyz"},
+				},
+				Expression: ast.BooleanExpression{
+					Token: token.Token{Type: token.BOOLEAN, Literal: "true"},
+				},
+			},
+			ast.LetStatement{
+				Token: token.Token{Type: token.LET, Literal: "let"},
+				Identifier: ast.IdentifierExpression{
+					Token: token.Token{Type: token.IDENTIFIER, Literal: "zyx"},
+				},
+				Expression: ast.BooleanExpression{
+					Token: token.Token{Type: token.BOOLEAN, Literal: "false"},
+				},
+			},
+			ast.LetStatement{
+				Token: token.Token{Type: token.LET, Literal: "let"},
+				Identifier: ast.IdentifierExpression{
+					Token: token.Token{Type: token.IDENTIFIER, Literal: "exp"},
+				},
+				Expression: ast.InfixExpression{
+					Token: token.Token{Type: token.PLUS, Literal: "+"},
+					Left: ast.IntExpression{
+						Token: token.Token{Type: token.INT, Literal: "5"},
+					},
+					Right: ast.InfixExpression{
+						Token: token.Token{Type: token.ASTERISK, Literal: "*"},
+						Left: ast.IntExpression{
+							Token: token.Token{Type: token.INT, Literal: "10"},
+						},
+						Right: ast.IntExpression{
+							Token: token.Token{Type: token.INT, Literal: "12"},
+						},
+					},
+				},
+			},
 		},
+	}
+
+	statementCount := len(expectedProg.Statements)
+	if len(prog.Statements) != statementCount {
+		t.Fatalf("error - expected: %d statements - got: %d", statementCount, len(prog.Statements))
 	}
 
 	if ok := reflect.DeepEqual(prog, expectedProg); !ok {
@@ -57,23 +99,30 @@ func TestLetStatementErrors(t *testing.T) {
 	input := `let x 5;
  let = 10;
  let 838383;
- let x = 10a;`
+ let x = 10a;
+ let false = true;
+ let let = let;
+ let wrong = let;`
 	l := lexer.CreateLexer(input)
 	p := CreateParser(l)
 
 	prog, err := p.ParseProgram()
-
-	errorCount := 4
-	if len(err) != errorCount {
-		t.Fatalf("error - expected: %d errors - got: %d", errorCount, len(err))
-	}
 
 	expectedErr := []error{
 		errors.New("error - expected: = - got: INT"),
 		errors.New("error - expected: IDENTIFIER - got: ="),
 		errors.New("error - expected: IDENTIFIER - got: INT"),
 		errors.New("error - expected: ; - got: IDENTIFIER"),
+		errors.New("error - expected: IDENTIFIER - got: BOOLEAN"),
+		errors.New("error - expected: IDENTIFIER - got: LET"),
+		errors.New("error - expected: expression - got: LET"),
 	}
+
+	errorCount := len(expectedErr)
+	if len(err) != errorCount {
+		t.Fatalf("error - expected: %d errors - got: %d", errorCount, len(err))
+	}
+
 	if ok := reflect.DeepEqual(err, expectedErr); !ok {
 		t.Fatalf("expected: %v - got: %v", expectedErr, err)
 	}
@@ -271,8 +320,20 @@ func TestInfixExpressionStatements(t *testing.T) {
 		expected string
 	}{
 		{
+			"5;",
+			"5;",
+		},
+		{
 			"-a * b;",
 			"((-a) * b);",
+		},
+		{
+			"---a;",
+			"(--(-a));",
+		},
+		{
+			"----a;",
+			"(--(--a));",
 		},
 		{
 			"!-1;",
@@ -318,54 +379,78 @@ func TestInfixExpressionStatements(t *testing.T) {
 			"3 + 4 * 5 == 3 * 1 + 4 * 5;",
 			"((3 + (4 * 5)) == ((3 * 1) + (4 * 5)));",
 		},
-		// {
-		// 	"true",
-		// 	"true",
-		// },
-		// {
-		// 	"false",
-		// 	"false",
-		// },
-		// {
-		// 	"3 > 5 == false",
-		// 	"((3 > 5) == false)",
-		// },
-		// {
-		// 	"3 < 5 == true",
-		// 	"((3 < 5) == true)",
-		// },
-		// {
-		// 	"1 + (2 + 3) + 4",
-		// 	"((1 + (2 + 3)) + 4)",
-		// },
-		// {
-		// 	"(5 + 5) + 2",
-		// 	"((5 + 5) + 2)",
-		// },
-		// {
-		// 	"2 / (5 + 5)",
-		// 	"(2 / (5 + 5))",
-		// },
-		// {
-		// 	"-(5 + 5)",
-		// 	"(-(5 + 5))",
-		// },
-		// {
-		// 	"!(true == true)",
-		// 	"(!(true == true))",
-		// },
-		// {
-		// 	"a + add(b + c) + d",
-		// 	"((a + add((b + c))) + d)",
-		// },
-		// {
-		// 	"add(a, b, 1, 2 * 3, 4 + 5, add(6, 7 * 8))",
-		// 	"add(a, b, 1, (2 * 3), (4 + 5), add(6, (7 * 8)))",
-		// },
-		// {
-		// 	"add(a + b + c * d / f + g)",
-		// 	"add((((a + b) + ((c * d) / f)) + g))",
-		// },
+		{
+			"3 + 4 * 5 >= 3 * 1 + 4 * 5;",
+			"((3 + (4 * 5)) >= ((3 * 1) + (4 * 5)));",
+		},
+		{
+			"3 + 4 * 5 <= 3 * 1 + 4 * 5;",
+			"((3 + (4 * 5)) <= ((3 * 1) + (4 * 5)));",
+		},
+		{
+			"3 + 4 * 5 != 3 * 1 + 4 * 5;",
+			"((3 + (4 * 5)) != ((3 * 1) + (4 * 5)));",
+		},
+		{
+			"5 | 6 && 9 & 6;",
+			"((5 | 6) && (9 & 6));",
+		},
+		{
+			"3 + 5 % 6 / 10;",
+			"(3 + ((5 % 6) / 10));",
+		},
+		{
+			"true;",
+			"true;",
+		},
+		{
+			"false;",
+			"false;",
+		},
+		{
+			"3 > 5 == false;",
+			"((3 > 5) == false);",
+		},
+		{
+			"3 < 5 == true;",
+			"((3 < 5) == true);",
+		},
+		{
+			"(5 + 3);",
+			"(5 + 3);",
+		},
+		{
+			"1 + (2 + 3) + 4;",
+			"((1 + (2 + 3)) + 4);",
+		},
+		{
+			"(5 + 5) + 2;",
+			"((5 + 5) + 2);",
+		},
+		{
+			"2 / (5 + 5);",
+			"(2 / (5 + 5));",
+		},
+		{
+			"-(5 + 5);",
+			"(-(5 + 5));",
+		},
+		{
+			"!(true == true);",
+			"(!(true == true));",
+		},
+		{
+			"a + add(b + c) + d;",
+			"((a + add((b + c))) + d);",
+		},
+		{
+			"add(a, b, 1, 2 * 3, 4 + 5, add(6, 7 * 8));",
+			"add(a, b, 1, (2 * 3), (4 + 5), add(6, (7 * 8)));",
+		},
+		{
+			"add(a + b + c * d / f + g);",
+			"add((((a + b) + ((c * d) / f)) + g));",
+		},
 		// {
 		// 	"a * [1, 2, 3, 4][b * c] * d",
 		// 	"((a * ([1, 2, 3, 4][(b * c)])) * d)",
@@ -381,6 +466,7 @@ func TestInfixExpressionStatements(t *testing.T) {
 		p := CreateParser(l)
 		prog, errs := p.ParseProgram()
 		if len(errs) != 0 {
+			t.Log(tt.expected)
 			t.Fatal(errs)
 		}
 

@@ -8,6 +8,7 @@ const (
 	// types
 	IDENTIFIER = "IDENTIFIER" // x, y, foo, variables, ...
 	INT        = "INT"        // integers: 1,2,3,...
+	BOOLEAN    = "BOOLEAN"    // true or false
 
 	// keywords
 	LET      = "LET"
@@ -15,8 +16,6 @@ const (
 	IF       = "IF"
 	ELSE     = "ELSE"
 	FOR      = "FOR"
-	TRUE     = "TRUE"
-	FALSE    = "FALSE"
 	RETURN   = "RETURN"
 
 	// quotes
@@ -74,8 +73,8 @@ var keywordTokenMap map[string]Token = map[string]Token{
 	"if":     {Type: IF, Literal: "if"},
 	"else":   {Type: ELSE, Literal: "else"},
 	"for":    {Type: FOR, Literal: "for"},
-	"true":   {Type: TRUE, Literal: "true"},
-	"false":  {Type: FALSE, Literal: "false"},
+	"true":   {Type: BOOLEAN, Literal: "true"},
+	"false":  {Type: BOOLEAN, Literal: "false"},
 	"return": {Type: RETURN, Literal: "return"},
 }
 

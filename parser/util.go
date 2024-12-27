@@ -12,6 +12,9 @@ func (p *Parser) badTokenTypeError(expected token.TokenType) error {
 func (p *Parser) currTokenIs(t token.TokenType) bool {
 	return p.currToken.Type == t
 }
+func (p *Parser) peekTokenIs(t token.TokenType) bool {
+	return p.peekToken.Type == t
+}
 
 func (p *Parser) currTokenIsLegalPrefix() bool {
 	return IsLegalPrefixOperator(p.currToken.Type)
@@ -30,18 +33,18 @@ func (p *Parser) currPrecedence() int {
 	return LOWEST
 }
 
-func (p *Parser) peekPrecedence() int {
-	if precedence, ok := precedences[p.peekToken.Type]; ok {
-		return precedence
-	}
-	return LOWEST
-}
-
 var legalPrefixOperator = map[token.TokenType]struct{}{
 	token.MINUS:     {},
 	token.BANG:      {},
 	token.INCREMENT: {},
 	token.DECREMENT: {},
+}
+
+func (p *Parser) peekPrecedence() int {
+	if precedence, ok := precedences[p.peekToken.Type]; ok {
+		return precedence
+	}
+	return LOWEST
 }
 
 func IsLegalPrefixOperator(t token.TokenType) bool {

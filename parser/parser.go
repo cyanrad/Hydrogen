@@ -141,13 +141,20 @@ func (p *Parser) parseExpression(precedence int) (ast.Expression, error) {
 	if p.currTokenIsLegalPrefix() {
 		exp, err = p.parsePrefixExpression()
 	} else if p.currTokenIs(token.IDENTIFIER) {
-		exp = p.parseIdentifierExpression()
+		if p.peekTokenIs(token.LPAREN) {
+			exp, err = p.parseFunctionExpression()
+		} else {
+			exp = p.parseIdentifierExpression()
+		}
+	} else if p.currTokenIs(token.BOOLEAN) {
+		exp = p.parseBooleanExpression()
 	} else if p.currTokenIs(token.INT) {
 		exp, err = p.parseIntExpression()
+	} else if p.currTokenIs(token.LPAREN) {
+		exp, err = p.parseGroupedExpression()
 	} else {
 		return nil, fmt.Errorf("error - expected: expression - got: %s", p.currToken.Type)
 	}
-
 	if err != nil {
 		return nil, err
 	}
@@ -164,8 +171,65 @@ func (p *Parser) parseExpression(precedence int) (ast.Expression, error) {
 
 func (p *Parser) parseIdentifierExpression() ast.IdentifierExpression {
 	return ast.IdentifierExpression{
-		Token: token.Token{Type: token.IDENTIFIER, Literal: p.currToken.Literal},
+		Token: p.currToken,
 	}
+}
+
+func (p *Parser) parseFunctionExpression() (ast.CallExpression, error) {
+	identifier := p.parseIdentifierExpression()
+	p.nextToken()
+	p.nextToken()
+
+	args := []ast.Expression{}
+	// this whole thing (parsing comma seperated expressions) should be abstracted out
+	if !p.peekTokenIs(token.RPAREN) {
+		for {
+			exp, err := p.parseExpression(LOWEST)
+			if err != nil {
+				return ast.CallExpression{}, err
+			}
+
+			args = append(args, exp)
+			p.nextToken()
+
+			if !p.currTokenIs(token.COMMA) {
+				break
+			}
+			p.nextToken()
+		}
+
+		if !p.currTokenIs(token.RPAREN) {
+			return ast.CallExpression{}, p.badTokenTypeError(token.RPAREN)
+		}
+	}
+
+	return ast.CallExpression{
+		Token:      identifier.Token,
+		Identifier: identifier,
+		Args:       args,
+	}, nil
+}
+
+func (p *Parser) parseBooleanExpression() ast.BooleanExpression {
+	return ast.BooleanExpression{
+		Token: p.currToken,
+	}
+}
+
+func (p *Parser) parseGroupedExpression() (ast.Expression, error) {
+	p.nextToken()
+
+	exp, err := p.parseExpression(LOWEST)
+	if err != nil {
+		return nil, err
+	}
+	p.nextToken()
+
+	if !p.currTokenIs(token.RPAREN) {
+		return nil, p.badTokenTypeError(token.RPAREN)
+	}
+
+	return exp, nil
 }
 
 func (p *Parser) parseIntExpression() (ast.IntExpression, error) {

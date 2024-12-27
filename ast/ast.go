@@ -93,6 +93,15 @@ func (ie IdentifierExpression) TokenLiteral() string { return ie.Token.Literal }
 func (ie IdentifierExpression) expressionNode()      {}
 func (ie IdentifierExpression) String() string       { return ie.TokenLiteral() }
 
+type BooleanExpression struct {
+	// Expression
+	Token token.Token // token.True or token.False
+}
+
+func (be BooleanExpression) TokenLiteral() string { return be.Token.Literal }
+func (be BooleanExpression) expressionNode()      {}
+func (be BooleanExpression) String() string       { return be.TokenLiteral() }
+
 type IntExpression struct {
 	// Expression
 	Token token.Token // token.INT + value
@@ -149,6 +158,29 @@ func (ie InfixExpression) String() string {
 	sb.WriteString(ie.TokenLiteral())
 	sb.WriteString(" ")
 	sb.WriteString(ie.Right.String())
+	sb.WriteString(")")
+
+	return sb.String()
+}
+
+type CallExpression struct {
+	// Expression
+	Token      token.Token // the function identifier
+	Identifier IdentifierExpression
+	Args       []Expression
+}
+
+func (ce CallExpression) TokenLiteral() string { return ce.Token.Literal }
+func (ce CallExpression) expressionNode()      {}
+func (ce CallExpression) String() string {
+	var sb strings.Builder
+
+	sb.WriteString(ce.TokenLiteral() + "(" + ce.Args[0].String())
+	if len(ce.Args) != 0 {
+		for i := 1; i < len(ce.Args); i++ {
+			sb.WriteString(", " + ce.Args[i].String())
+		}
+	}
 	sb.WriteString(")")
 
 	return sb.String()

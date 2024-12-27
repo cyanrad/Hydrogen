@@ -179,24 +179,23 @@ return xyz;`
 func TestReturnStatementErrors(t *testing.T) {
 	input := `return ;
 return 12xyz;
-return xyz();
 return =`
 	l := lexer.CreateLexer(input)
 	p := CreateParser(l)
 
 	prog, err := p.ParseProgram()
 
-	errorCount := 4
+	expectedErr := []error{
+		errors.New("error - expected: expression - got: ;"),
+		errors.New("error - expected: ; - got: IDENTIFIER"),
+		errors.New("error - expected: expression - got: ="),
+	}
+
+	errorCount := len(expectedErr)
 	if len(err) != errorCount {
 		t.Fatalf("error - expected: %d errors - got: %d", errorCount, len(err))
 	}
 
-	expectedErr := []error{
-		errors.New("error - expected: expression - got: ;"),
-		errors.New("error - expected: ; - got: IDENTIFIER"),
-		errors.New("error - expected: ; - got: ("),
-		errors.New("error - expected: expression - got: ="),
-	}
 	if ok := reflect.DeepEqual(err, expectedErr); !ok {
 		t.Fatalf("expected: %v - got: %v", expectedErr, err)
 	}

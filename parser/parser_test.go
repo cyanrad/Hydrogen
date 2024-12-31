@@ -475,3 +475,21 @@ func TestInfixExpressionStatements(t *testing.T) {
 		}
 	}
 }
+
+func TestIfExpression(t *testing.T) {
+	input := `if (x < y) { x; } else if (x == y) { y; } else { z; };`
+
+	l := lexer.CreateLexer(input)
+	p := CreateParser(l)
+
+	prog, err := p.ParseProgram()
+	if len(err) != 0 {
+		t.Fatal(err)
+	}
+
+	statementCount := 1
+	if len(prog.Statements) != statementCount {
+		t.Fatalf("error - expected: %d statements - got: %d", statementCount, len(prog.Statements))
+	}
+
+}

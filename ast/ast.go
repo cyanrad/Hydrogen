@@ -43,6 +43,25 @@ func (p *Program) String() string {
 	return sb.String()
 }
 
+type BlockStatement struct {
+	Token      token.Token // token.LBracket
+	Statements []Statement
+}
+
+func (bs *BlockStatement) statementNode()       {}
+func (bs *BlockStatement) TokenLiteral() string { return bs.Token.Literal }
+func (bs *BlockStatement) String() string {
+	var sb strings.Builder
+
+	sb.WriteString("{\n")
+	for _, s := range bs.Statements {
+		sb.WriteString("\t" + s.String() + "\n")
+	}
+	sb.WriteString("}")
+
+	return sb.String()
+}
+
 type LetStatement struct {
 	// Statement
 	Token      token.Token // token.LET
@@ -84,6 +103,47 @@ func (rs ReturnStatement) String() string {
 	return sb.String()
 }
 
+type IfExpression struct {
+	// Statement
+	Token      token.Token // token.IF
+	Conditions []Expression
+	Blocks     []BlockStatement // len of Blocks should be Conditions+1 (in case last block is else)
+}
+
+func (ie IfExpression) TokenLiteral() string { return ie.Token.Literal }
+func (ie IfExpression) statementNode()       {}
+func (ie IfExpression) String() string {
+	var sb strings.Builder
+
+	i := 0
+	for ; i < len(ie.Conditions); i++ {
+		if i != 0 {
+			sb.WriteString(" else ")
+		}
+		sb.WriteString("if ")
+		sb.WriteString(ie.Conditions[i].String())
+		sb.WriteString(" ")
+		sb.WriteString(ie.Blocks[i].String())
+	}
+	if len(ie.Conditions) < len(ie.Blocks) {
+		sb.WriteString(" else ")
+		sb.WriteString(ie.Blocks[i].String())
+	}
+	sb.WriteString(";")
+
+	return sb.String()
+}
+
+type ExpressionStatement struct {
+	// Statement
+	Token      token.Token // the first token of the expression
+	Expression Expression
+}
+
+func (es ExpressionStatement) TokenLiteral() string { return es.Token.Literal }
+func (es ExpressionStatement) statementNode()       {}
+func (es ExpressionStatement) String() string       { return es.Expression.String() + ";" }
+
 type IdentifierExpression struct {
 	// Expression
 	Token token.Token // token.Identifier + name
@@ -110,16 +170,6 @@ type IntExpression struct {
 func (ie IntExpression) TokenLiteral() string { return ie.Token.Literal }
 func (ie IntExpression) expressionNode()      {}
 func (ie IntExpression) String() string       { return ie.TokenLiteral() }
-
-type ExpressionStatement struct {
-	// Statement
-	Token      token.Token // the first token of the expression
-	Expression Expression
-}
-
-func (es ExpressionStatement) TokenLiteral() string { return es.Token.Literal }
-func (es ExpressionStatement) statementNode()       {}
-func (es ExpressionStatement) String() string       { return es.Expression.String() + ";" }
 
 type PrefixExpression struct {
 	// Expression

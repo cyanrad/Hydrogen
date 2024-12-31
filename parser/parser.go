@@ -30,33 +30,70 @@ func (p *Parser) nextToken() {
 }
 
 func (p *Parser) ParseProgram() (ast.Program, []error) {
-	prog := ast.Program{Statements: []ast.Statement{}}
-	errors := []error{}
+	statements := []ast.Statement{}
+	errors := []error{} // it's better to have a general abstracted struct for this
 
 	for !p.currTokenIs(token.EOF) {
-		var s ast.Statement
-		var err error
-		if p.currTokenIs(token.LET) {
-			s, err = p.parseLetStatement()
-		} else if p.currTokenIs(token.RETURN) {
-			s, err = p.parseReturnStatement()
-		} else {
-			s, err = p.parseExpressionStatement()
+		s, errs := p.ParseStatement()
+		if s != nil {
+			statements = append(statements, s)
 		}
+		errors = append(errors, errs...)
+	}
+	return ast.Program{Statements: statements}, errors
+}
 
-		if err != nil {
-			errors = append(errors, err)
-			p.skipToSemicolon()
-		} else if s != nil {
-			prog.Statements = append(prog.Statements, s)
+func (p *Parser) ParseBlockStatement() (ast.BlockStatement, []error) {
+	// this function checks for starting and ending braces as such checks are common and not handling them here will lead to repeated code
+	if !p.currTokenIs(token.LBRACKET) {
+		return ast.BlockStatement{}, []error{p.badTokenTypeError(token.LBRACKET)}
+	}
+	t := p.currToken
+	p.nextToken()
+
+	statements := []ast.Statement{}
+	errors := []error{} // it's better to have a general abstracted struct for this
+	for !(p.currTokenIs(token.EOF) || p.currTokenIs(token.RBRACKET)) {
+		s, errs := p.ParseStatement()
+		if s != nil {
+			statements = append(statements, s)
 		}
-
-		// it is important for this to not be inside of the statement functions
-		// as it is used to handle error cases
-		p.nextToken()
+		errors = append(errors, errs...)
 	}
 
-	return prog, errors
+	return ast.BlockStatement{
+		Token:      t,
+		Statements: statements,
+	}, errors
+}
+
+func (p *Parser) ParseStatement() (ast.Statement, []error) {
+	var s ast.Statement
+	var err error
+	var errs []error // this is bad
+	if p.currTokenIs(token.LET) {
+		s, err = p.parseLetStatement()
+	} else if p.currTokenIs(token.RETURN) {
+		s, err = p.parseReturnStatement()
+	} else if p.currTokenIs(token.IF) {
+		s, errs = p.ParseIfExpression()
+	} else {
+		s, err = p.parseExpressionStatement()
+	}
+
+	if err != nil {
+		errs = append(errs, err)
+		s = nil
+		p.skipToSemicolon()
+	} else if len(errs) != 0 {
+		s = nil
+		p.skipToSemicolon()
+	}
+	// it is important for this to not be inside of the statement functions
+	// as it is used to handle error cases
+	p.nextToken()
+
+	return s, errs
 }
 
 // you can assume that a statement functions have the currToken as the first token in it
@@ -113,6 +150,52 @@ func (p *Parser) parseReturnStatement() (ast.ReturnStatement, error) {
 			Expression: exp,
 		},
 		nil
+}
+
+func (p *Parser) ParseIfExpression() (ast.IfExpression, []error) {
+	blocks := []ast.BlockStatement{}
+	conditions := []ast.Expression{}
+	t := p.currToken
+
+	// if & else if
+	for {
+		p.nextToken()
+
+		exp, err := p.parseExpression(LOWEST)
+		if err != nil {
+			return ast.IfExpression{}, []error{err}
+		}
+		conditions = append(conditions, exp)
+		p.nextToken()
+
+		b, errs := p.ParseBlockStatement()
+		if len(errs) != 0 {
+			return ast.IfExpression{}, errs
+		}
+		blocks = append(blocks, b)
+		p.nextToken()
+
+		if !(p.currTokenIs(token.ELSE) && p.peekTokenIs(token.IF)) {
+			break
+		}
+		p.nextToken()
+	}
+
+	if p.currTokenIs(token.ELSE) {
+		p.nextToken()
+		b, errs := p.ParseBlockStatement()
+		if len(errs) != 0 {
+			return ast.IfExpression{}, errs
+		}
+		blocks = append(blocks, b)
+		p.nextToken()
+	}
+
+	return ast.IfExpression{
+		Token:      t,
+		Blocks:     blocks,
+		Conditions: conditions,
+	}, []error{}
 }
 
 func (p *Parser) parseExpressionStatement() (ast.ExpressionStatement, error) {

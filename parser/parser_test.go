@@ -2,6 +2,7 @@ package parser
 
 import (
 	"errors"
+	"fmt"
 	"main/ast"
 	"main/lexer"
 	"main/token"
@@ -320,135 +321,135 @@ func TestInfixExpressionStatements(t *testing.T) {
 	}{
 		{
 			"5;",
-			"5;",
+			"5",
 		},
 		{
-			"-a * b;",
-			"((-a) * b);",
+			"-a * b",
+			"((-a) * b)",
 		},
 		{
-			"---a;",
-			"(--(-a));",
+			"---a",
+			"(--(-a))",
 		},
 		{
-			"----a;",
-			"(--(--a));",
+			"----a",
+			"(--(--a))",
 		},
 		{
-			"!-1;",
-			"(!(-1));",
+			"!-1",
+			"(!(-1))",
 		},
 		{
-			"a + b + c;",
-			"((a + b) + c);",
+			"a + b + c",
+			"((a + b) + c)",
 		},
 		{
-			"a + b - c;",
-			"((a + b) - c);",
+			"a + b - c",
+			"((a + b) - c)",
 		},
 		{
-			"a * b * c;",
-			"((a * b) * c);",
+			"a * b * c",
+			"((a * b) * c)",
 		},
 		{
-			"a * b / c;",
-			"((a * b) / c);",
+			"a * b / c",
+			"((a * b) / c)",
 		},
 		{
-			"a + b / c;",
-			"(a + (b / c));",
+			"a + b / c",
+			"(a + (b / c))",
 		},
 		{
-			"a + b * c + d / e - f;",
-			"(((a + (b * c)) + (d / e)) - f);",
+			"a + b * c + d / e - f",
+			"(((a + (b * c)) + (d / e)) - f)",
 		},
 		{
-			"3 + 4; -5 * 5;",
-			"(3 + 4);\n((-5) * 5);",
+			"3 + 4; -5 * 5",
+			"(3 + 4)\n((-5) * 5)",
 		},
 		{
-			"5 > 4 == 3 < 4;",
-			"((5 > 4) == (3 < 4));",
+			"5 > 4 == 3 < 4",
+			"((5 > 4) == (3 < 4))",
 		},
 		{
-			"5 < 4 != 3 > 4;",
-			"((5 < 4) != (3 > 4));",
+			"5 < 4 != 3 > 4",
+			"((5 < 4) != (3 > 4))",
 		},
 		{
-			"3 + 4 * 5 == 3 * 1 + 4 * 5;",
-			"((3 + (4 * 5)) == ((3 * 1) + (4 * 5)));",
+			"3 + 4 * 5 == 3 * 1 + 4 * 5",
+			"((3 + (4 * 5)) == ((3 * 1) + (4 * 5)))",
 		},
 		{
-			"3 + 4 * 5 >= 3 * 1 + 4 * 5;",
-			"((3 + (4 * 5)) >= ((3 * 1) + (4 * 5)));",
+			"3 + 4 * 5 >= 3 * 1 + 4 * 5",
+			"((3 + (4 * 5)) >= ((3 * 1) + (4 * 5)))",
 		},
 		{
-			"3 + 4 * 5 <= 3 * 1 + 4 * 5;",
-			"((3 + (4 * 5)) <= ((3 * 1) + (4 * 5)));",
+			"3 + 4 * 5 <= 3 * 1 + 4 * 5",
+			"((3 + (4 * 5)) <= ((3 * 1) + (4 * 5)))",
 		},
 		{
-			"3 + 4 * 5 != 3 * 1 + 4 * 5;",
-			"((3 + (4 * 5)) != ((3 * 1) + (4 * 5)));",
+			"3 + 4 * 5 != 3 * 1 + 4 * 5",
+			"((3 + (4 * 5)) != ((3 * 1) + (4 * 5)))",
 		},
 		{
-			"5 | 6 && 9 & 6;",
-			"((5 | 6) && (9 & 6));",
+			"5 | 6 && 9 & 6",
+			"((5 | 6) && (9 & 6))",
 		},
 		{
-			"3 + 5 % 6 / 10;",
-			"(3 + ((5 % 6) / 10));",
+			"3 + 5 % 6 / 10",
+			"(3 + ((5 % 6) / 10))",
 		},
 		{
-			"true;",
-			"true;",
+			"true",
+			"true",
 		},
 		{
-			"false;",
-			"false;",
+			"false",
+			"false",
 		},
 		{
-			"3 > 5 == false;",
-			"((3 > 5) == false);",
+			"3 > 5 == false",
+			"((3 > 5) == false)",
 		},
 		{
-			"3 < 5 == true;",
-			"((3 < 5) == true);",
+			"3 < 5 == true",
+			"((3 < 5) == true)",
 		},
 		{
-			"(5 + 3);",
-			"(5 + 3);",
+			"(5 + 3)",
+			"(5 + 3)",
 		},
 		{
-			"1 + (2 + 3) + 4;",
-			"((1 + (2 + 3)) + 4);",
+			"1 + (2 + 3) + 4",
+			"((1 + (2 + 3)) + 4)",
 		},
 		{
-			"(5 + 5) + 2;",
-			"((5 + 5) + 2);",
+			"(5 + 5) + 2",
+			"((5 + 5) + 2)",
 		},
 		{
-			"2 / (5 + 5);",
-			"(2 / (5 + 5));",
+			"2 / (5 + 5)",
+			"(2 / (5 + 5))",
 		},
 		{
-			"-(5 + 5);",
-			"(-(5 + 5));",
+			"-(5 + 5)",
+			"(-(5 + 5))",
 		},
 		{
-			"!(true == true);",
-			"(!(true == true));",
+			"!(true == true)",
+			"(!(true == true))",
 		},
 		{
-			"a + add(b + c) + d;",
-			"((a + add((b + c))) + d);",
+			"a + add(b + c) + d",
+			"((a + add((b + c))) + d)",
 		},
 		{
-			"add(a, b, 1, 2 * 3, 4 + 5, add(6, 7 * 8));",
-			"add(a, b, 1, (2 * 3), (4 + 5), add(6, (7 * 8)));",
+			"add(a, b, 1, 2 * 3, 4 + 5, add(6, 7 * 8))",
+			"add(a, b, 1, (2 * 3), (4 + 5), add(6, (7 * 8)))",
 		},
 		{
-			"add(a + b + c * d / f + g);",
-			"add((((a + b) + ((c * d) / f)) + g));",
+			"add(a + b + c * d / f + g)",
+			"add((((a + b) + ((c * d) / f)) + g))",
 		},
 		// {
 		// 	"a * [1, 2, 3, 4][b * c] * d",
@@ -460,7 +461,7 @@ func TestInfixExpressionStatements(t *testing.T) {
 		// },
 	}
 
-	for _, tt := range tests {
+	for i, tt := range tests {
 		l := lexer.CreateLexer(tt.input)
 		p := CreateParser(l)
 		prog, errs := p.ParseProgram()
@@ -471,25 +472,71 @@ func TestInfixExpressionStatements(t *testing.T) {
 
 		actual := prog.String()
 		if actual != tt.expected {
-			t.Errorf("error - expected: %q, got: %q", tt.expected, actual)
+			fmt.Printf("error [%d]:\n< EXPECTED >\n%s\n\n< ACTUAL >\n%s", i, tt.expected, actual)
+			// fmt.Printf("\n< EXPECTED BYTES >\n%v\n\n< ACTUAL BYTES >\n%v", []byte(tests[i].output), []byte(actual))
+			t.Fatal()
+		} else {
+			fmt.Printf("< LOGGING [%d] >\n%s\n\n", i, actual)
 		}
 	}
 }
 
 func TestIfExpression(t *testing.T) {
-	input := `if (x < y) { x; } else if (x == y) { y; } else { z; };`
-
-	l := lexer.CreateLexer(input)
-	p := CreateParser(l)
-
-	prog, err := p.ParseProgram()
-	if len(err) != 0 {
-		t.Fatal(err)
+	tests := []struct {
+		input    string
+		expected string
+	}{
+		{
+			"if (x < y) {x} else if (x == y) {y} else if (plop || asdf) { let what = 10; } else { z }",
+			`if (x < y) {
+	x
+} else if (x == y) {
+	y
+} else if (plop || asdf) {
+	let what = 10;
+} else {
+	z
+}`,
+		},
 	}
 
-	statementCount := 1
-	if len(prog.Statements) != statementCount {
-		t.Fatalf("error - expected: %d statements - got: %d", statementCount, len(prog.Statements))
+	for i, tt := range tests {
+		l := lexer.CreateLexer(tt.input)
+		p := CreateParser(l)
+
+		prog, err := p.ParseProgram()
+		if len(err) != 0 {
+			t.Fatal(err)
+		}
+
+		statementCount := 1
+		if len(prog.Statements) != statementCount {
+			t.Fatalf("error - expected: %d statements - got: %d", statementCount, len(prog.Statements))
+		}
+		actual := prog.String()
+		if actual != tt.expected {
+			fmt.Printf("error [%d]:\n< EXPECTED >\n%s\n\n< ACTUAL >\n%s", i, whitespaceReplacer(tt.expected), whitespaceReplacer(actual))
+			// fmt.Printf("\n< EXPECTED BYTES >\n%v\n\n< ACTUAL BYTES >\n%v", []byte(tests[i].output), []byte(actual))
+			t.Fatal()
+		} else {
+			fmt.Printf("< LOGGING [%d] >\n%s\n\n", i, actual)
+		}
 	}
 
+}
+
+func whitespaceReplacer(str string) string {
+	output := ""
+	for _, ch := range str {
+		if ch == ' ' {
+			output += "X"
+		} else if ch == '\t' {
+			output += "XXXX"
+		} else {
+			output += string(ch)
+		}
+
+	}
+
+	return output
 }

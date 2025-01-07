@@ -111,7 +111,7 @@ type IfExpression struct {
 }
 
 func (ie IfExpression) TokenLiteral() string { return ie.Token.Literal }
-func (ie IfExpression) statementNode()       {}
+func (ie IfExpression) expressionNode()      {}
 func (ie IfExpression) String() string {
 	var sb strings.Builder
 
@@ -129,7 +129,6 @@ func (ie IfExpression) String() string {
 		sb.WriteString(" else ")
 		sb.WriteString(ie.Blocks[i].String())
 	}
-	sb.WriteString(";")
 
 	return sb.String()
 }
@@ -142,7 +141,7 @@ type ExpressionStatement struct {
 
 func (es ExpressionStatement) TokenLiteral() string { return es.Token.Literal }
 func (es ExpressionStatement) statementNode()       {}
-func (es ExpressionStatement) String() string       { return es.Expression.String() + ";" }
+func (es ExpressionStatement) String() string       { return es.Expression.String() }
 
 type IdentifierExpression struct {
 	// Expression

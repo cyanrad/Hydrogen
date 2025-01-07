@@ -5,6 +5,9 @@ import (
 	"strings"
 )
 
+// this is atrocious
+var INDENT_TRACKER = 0
+
 type Node interface {
 	TokenLiteral() string
 	String() string
@@ -54,10 +57,12 @@ func (bs *BlockStatement) String() string {
 	var sb strings.Builder
 
 	sb.WriteString("{\n")
+	INDENT_TRACKER++
 	for _, s := range bs.Statements {
-		sb.WriteString("\t" + s.String() + "\n")
+		sb.WriteString(strings.Repeat("\t", INDENT_TRACKER) + s.String() + "\n")
 	}
-	sb.WriteString("}")
+	INDENT_TRACKER--
+	sb.WriteString(strings.Repeat("\t", INDENT_TRACKER) + "}")
 
 	return sb.String()
 }
@@ -125,6 +130,7 @@ func (ie IfExpression) String() string {
 		sb.WriteString(" ")
 		sb.WriteString(ie.Blocks[i].String())
 	}
+
 	if len(ie.Conditions) < len(ie.Blocks) {
 		sb.WriteString(" else ")
 		sb.WriteString(ie.Blocks[i].String())
@@ -224,13 +230,41 @@ func (ce CallExpression) expressionNode()      {}
 func (ce CallExpression) String() string {
 	var sb strings.Builder
 
-	sb.WriteString(ce.TokenLiteral() + "(" + ce.Args[0].String())
-	if len(ce.Args) != 0 {
-		for i := 1; i < len(ce.Args); i++ {
-			sb.WriteString(", " + ce.Args[i].String())
+	sb.WriteString(ce.TokenLiteral() + "(")
+	for i, a := range ce.Args {
+		sb.WriteString(a.String())
+		if i != len(ce.Args)-1 {
+			sb.WriteString(",")
 		}
 	}
 	sb.WriteString(")")
+
+	return sb.String()
+}
+
+type FunctionExpression struct {
+	// Expression
+	Token      token.Token // token.FUNCTION
+	Identifier IdentifierExpression
+	Args       []IdentifierExpression
+	Body       BlockStatement
+}
+
+func (fe FunctionExpression) TokenLiteral() string { return fe.Token.Literal }
+func (fe FunctionExpression) expressionNode()      {}
+func (fe FunctionExpression) String() string {
+	var sb strings.Builder
+
+	sb.WriteString("fn ")
+	sb.WriteString(fe.Identifier.String() + "(")
+	for i, a := range fe.Args {
+		sb.WriteString(a.String())
+		if i != len(fe.Args)-1 {
+			sb.WriteString(", ")
+		}
+	}
+	sb.WriteString(") ")
+	sb.WriteString(fe.Body.String())
 
 	return sb.String()
 }

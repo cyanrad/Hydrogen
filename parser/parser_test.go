@@ -481,7 +481,7 @@ func TestInfixExpressionStatements(t *testing.T) {
 	}
 }
 
-func TestIfExpression(t *testing.T) {
+func TestComplexExpressions(t *testing.T) {
 	tests := []struct {
 		input    string
 		expected string
@@ -498,6 +498,16 @@ func TestIfExpression(t *testing.T) {
 	z
 }`,
 		},
+		{
+			"fn ThisIsFunction(xyz, what, hell) {xyz; let var = 123; if (xyz == 123) {bruh()}}",
+			`fn ThisIsFunction(xyz, what, hell) {
+	xyz
+	let var = 123;
+	if (xyz == 123) {
+		bruh()
+	}
+}`,
+		},
 	}
 
 	for i, tt := range tests {
@@ -510,12 +520,17 @@ func TestIfExpression(t *testing.T) {
 		}
 
 		statementCount := 1
+		enableWhitespace := 1
 		if len(prog.Statements) != statementCount {
 			t.Fatalf("error - expected: %d statements - got: %d", statementCount, len(prog.Statements))
 		}
 		actual := prog.String()
 		if actual != tt.expected {
-			fmt.Printf("error [%d]:\n< EXPECTED >\n%s\n\n< ACTUAL >\n%s", i, whitespaceReplacer(tt.expected), whitespaceReplacer(actual))
+			if enableWhitespace == 1 {
+				fmt.Printf("error [%d]:\n< EXPECTED >\n%s\n\n< ACTUAL >\n%s", i, tt.expected, actual)
+			} else {
+				fmt.Printf("error [%d]:\n< EXPECTED >\n%s\n\n< ACTUAL >\n%s", i, whitespaceReplacer(tt.expected), whitespaceReplacer(actual))
+			}
 			// fmt.Printf("\n< EXPECTED BYTES >\n%v\n\n< ACTUAL BYTES >\n%v", []byte(tests[i].output), []byte(actual))
 			t.Fatal()
 		} else {

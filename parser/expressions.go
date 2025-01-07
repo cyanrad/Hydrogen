@@ -25,6 +25,8 @@ func (p *Parser) parseExpression(precedence int) (ast.Expression, []error) {
 		exp, errs = p.parseGroupedExpression()
 	} else if p.currTokenIs(token.IF) {
 		exp, errs = p.ParseIfExpression()
+	} else if p.currTokenIs(token.FUNCTION) {
+		exp, errs = p.parseFunctionExpression()
 	} else {
 		return nil, []error{fmt.Errorf("error - expected: expression - got: %s", p.currToken.Type)}
 	}
@@ -64,7 +66,7 @@ func (p *Parser) parseCallExpression() (ast.CallExpression, []error) {
 
 	args := []ast.Expression{}
 	// this whole thing (parsing comma seperated expressions) should be abstracted out
-	if !p.peekTokenIs(token.RPAREN) {
+	if !p.currTokenIs(token.RPAREN) {
 		for {
 			exp, errs := p.parseExpression(LOWEST)
 			if len(errs) != 0 {
@@ -194,5 +196,57 @@ func (p *Parser) parseInfixExpression(left ast.Expression) (ast.InfixExpression,
 		Token: operator,
 		Left:  left,
 		Right: right,
+	}, nil
+}
+
+func (p *Parser) parseFunctionExpression() (ast.FunctionExpression, []error) {
+	fn := p.currToken
+	p.nextToken()
+
+	// the following logic is a remake of the call expression but only allows identifiers
+	if !p.currTokenIs(token.IDENTIFIER) {
+		return ast.FunctionExpression{}, []error{p.badTokenTypeError(token.IDENTIFIER)}
+	}
+	identifier := p.parseIdentifierExpression()
+	p.nextToken()
+
+	if !p.currTokenIs(token.LPAREN) {
+		return ast.FunctionExpression{}, []error{p.badTokenTypeError(token.LPAREN)}
+	}
+	p.nextToken()
+
+	args := []ast.IdentifierExpression{}
+	if !p.currTokenIs(token.RPAREN) {
+		for {
+			if !p.currTokenIs(token.IDENTIFIER) {
+				return ast.FunctionExpression{}, []error{p.badTokenTypeError(token.IDENTIFIER)}
+			}
+			ident := p.parseIdentifierExpression()
+
+			args = append(args, ident)
+			p.nextToken()
+
+			if p.currTokenIs(token.COMMA) {
+				p.nextToken()
+			} else if p.currTokenIs(token.RPAREN) {
+				break
+			} else {
+				return ast.FunctionExpression{}, []error{p.badTokenTypeError(token.COMMA)}
+			}
+		}
+	}
+	p.nextToken()
+
+	body, err := p.ParseBlockStatement()
+	p.nextToken()
+	if len(err) != 0 {
+		return ast.FunctionExpression{}, err
+	}
+
+	return ast.FunctionExpression{
+		Token:      fn,
+		Identifier: identifier,
+		Args:       args,
+		Body:       body,
 	}, nil
 }

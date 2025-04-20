@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/user"
 
+	"main/evaluator"
 	"main/lexer"
 	"main/parser"
 )
@@ -22,21 +23,33 @@ const PROMPT = ">> "
 func Start(in io.Reader, out io.Writer) {
 	scanner := bufio.NewScanner(in)
 	for {
-		fmt.Printf(PROMPT)
+		// prompt user for input
+		fmt.Print(PROMPT)
+
+		// reading user input
 		scanned := scanner.Scan()
 		if !scanned {
 			return
 		}
 		line := scanner.Text()
+
+		// lexing
 		l := lexer.CreateLexer(line)
+
+		// parsing
 		p := parser.CreateParser(l)
 		program, err := p.ParseProgram()
 		if len(err) != 0 {
 			printParserErrors(out, err)
 			continue
 		}
-		io.WriteString(out, program.String())
-		io.WriteString(out, "\n")
+
+		// interpreting
+		evaluated := evaluator.Eval(program)
+		if evaluated != nil {
+			io.WriteString(out, evaluated.Inspect())
+			io.WriteString(out, "\n")
+		}
 	}
 }
 

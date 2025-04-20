@@ -51,9 +51,9 @@ type BlockStatement struct {
 	Statements []Statement
 }
 
-func (bs *BlockStatement) statementNode()       {}
-func (bs *BlockStatement) TokenLiteral() string { return bs.Token.Literal }
-func (bs *BlockStatement) String() string {
+func (bs BlockStatement) statementNode()       {}
+func (bs BlockStatement) TokenLiteral() string { return bs.Token.Literal }
+func (bs BlockStatement) String() string {
 	var sb strings.Builder
 
 	sb.WriteString("{\n")
@@ -234,7 +234,7 @@ func (ce CallExpression) String() string {
 	for i, a := range ce.Args {
 		sb.WriteString(a.String())
 		if i != len(ce.Args)-1 {
-			sb.WriteString(",")
+			sb.WriteString(", ")
 		}
 	}
 	sb.WriteString(")")

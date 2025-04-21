@@ -16,7 +16,7 @@ func EvalStatement(s ast.Statement) object.Object {
 	case ast.ReturnStatement:
 		return evalReturnStatement(stmt)
 	default:
-		return nil
+		panic("unknown statement type")
 	}
 }
 

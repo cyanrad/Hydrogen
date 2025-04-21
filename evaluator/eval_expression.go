@@ -16,6 +16,8 @@ func EvalExpression(n ast.Expression) object.Object {
 		return evalPrefix(exp)
 	case ast.InfixExpression:
 		return evalInfix(exp)
+	case ast.IfExpression:
+		return evalIf(exp)
 	default:
 		panic("unknown expression type")
 	}
@@ -126,4 +128,21 @@ func evalInfix(node ast.InfixExpression) object.Object {
 	}
 
 	panic("failed to match left and right types")
+}
+
+func evalIf(node ast.IfExpression) object.Object {
+	// looping over the conditions, return the block of the first condition that evaluates to true
+	for i, condition := range node.Conditions {
+		cond := EvalExpression(condition)
+		if boolCond, ok := cond.(*object.BooleanObj); ok && boolCond.Value {
+			return EvalStatement(node.Blocks[i])
+		}
+	}
+
+	// the else condition
+	if len(node.Blocks) > len(node.Conditions) {
+		return EvalStatement(node.Blocks[len(node.Blocks)-1])
+	}
+
+	return &object.NullObj{}
 }

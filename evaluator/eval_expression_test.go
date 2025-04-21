@@ -142,6 +142,12 @@ func TestEvalInfixExpression(t *testing.T) {
 		{"5 + 5 == 10", true},
 		{"5 + 5 != 10", false},
 		{"5 * 2 < 10", false},
+
+		// With Parentheses
+		{"(5 + 5) == 10", true},
+		{"(5 + 5) != 10", false},
+		{"(5 * 2) < (10 - 1)", false},
+		{"(5 * 2 > 10) || (5 < 8)", true},
 	}
 
 	for _, tt := range boolTests {
@@ -151,6 +157,48 @@ func TestEvalInfixExpression(t *testing.T) {
 		}
 
 		testBooleanObject(t, evaluated, tt.expected)
+	}
+}
+
+func TestEvalIfElseExpression(t *testing.T) {
+	intTests := []struct {
+		input    string
+		expected int64
+	}{
+		{"if (true) { 10 }", 10},
+		{"if (1 < 2) { 10 } else { 20 }", 10},
+		{"if (1 > 2) { 10 } else { 20 }", 20},
+
+		// nested if
+		{"if (2 > 1) { if (true) { 10 } else { 20 } } else { 30 }", 10},
+
+		// else if
+		{"if (1 > 2) { 10 } else if (true) { 20 } else { 30 }", 20},
+	}
+
+	for _, tt := range intTests {
+		evaluated, errors := testEval(tt.input)
+		if errors != nil {
+			t.Fatalf("unexpected errors: %v", errors)
+		}
+
+		testIntegerObject(t, evaluated, tt.expected)
+	}
+
+	nullTests := []struct {
+		input string
+	}{
+		{"if (false) { 10 }"},
+		{"if (0) { 10 }"},
+	}
+
+	for _, tt := range nullTests {
+		evaluated, errors := testEval(tt.input)
+		if errors != nil {
+			t.Fatalf("unexpected errors: %v", errors)
+		}
+
+		testNullObject(t, evaluated)
 	}
 }
 
@@ -177,6 +225,15 @@ func testIntegerObject(t *testing.T, obj object.Object, expected int64) bool {
 	if result.Value != expected {
 		t.Errorf("object has wrong value. got=%d, want=%d",
 			result.Value, expected)
+		return false
+	}
+	return true
+}
+
+func testNullObject(t *testing.T, obj object.Object) bool {
+	_, ok := obj.(*object.NullObj)
+	if !ok {
+		t.Errorf("object is not Null. got=%T (%+v)", obj, obj)
 		return false
 	}
 	return true

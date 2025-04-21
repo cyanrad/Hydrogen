@@ -68,6 +68,8 @@ func TestEvalPrefixExpression(t *testing.T) {
 	}{
 		{"!true", false},
 		{"!false", true},
+		{"!!true", true},
+		{"!!false", false},
 	}
 	for _, tt := range boolTests {
 		evaluated, errors := testEval(tt.input)
@@ -93,6 +95,23 @@ func TestEvalInfixExpression(t *testing.T) {
 		{"5 + 5 - 5", 5},
 		{"5 * 2 + 10", 20},
 		{"10 - 5 * 2", 0},
+
+		// Additional
+		{"5", 5},
+		{"10", 10},
+		{"-5", -5},
+		{"-10", -10},
+		{"5 + 5 + 5 + 5 - 10", 10},
+		{"2 * 2 * 2 * 2 * 2", 32},
+		{"-50 + 100 + -50", 0},
+		{"5 * 2 + 10", 20},
+		{"5 + 2 * 10", 25},
+		{"20 + 2 * -10", 0},
+		{"50 / 2 * 2 + 10", 60},
+		{"2 * (5 + 10)", 30},
+		{"3 * 3 * 3 + 10", 37},
+		{"3 * (3 * 3) + 10", 37},
+		{"(5 + 10 * 2 + 15 / 3) * 2 + -10", 50},
 
 		// Bitwise Operations
 		{"5 & 3", 1},
@@ -148,6 +167,11 @@ func TestEvalInfixExpression(t *testing.T) {
 		{"(5 + 5) != 10", false},
 		{"(5 * 2) < (10 - 1)", false},
 		{"(5 * 2 > 10) || (5 < 8)", true},
+
+		{"(1 < 2) == true", true},
+		{"(1 < 2) == false", false},
+		{"(1 > 2) == true", false},
+		{"(1 > 2) == false", true},
 	}
 
 	for _, tt := range boolTests {

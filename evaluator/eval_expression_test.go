@@ -84,11 +84,19 @@ func TestEvalInfixExpression(t *testing.T) {
 		input    string
 		expected int64
 	}{
+		// Arithmetic Operations
 		{"5 + 5", 10},
 		{"5 - 5", 0},
 		{"5 * 5", 25},
 		{"12 / 6", 2},
 		{"5 % 2", 1},
+		{"5 + 5 - 5", 5},
+		{"5 * 2 + 10", 20},
+		{"10 - 5 * 2", 0},
+
+		// Bitwise Operations
+		{"5 & 3", 1},
+		{"5 | 3", 7},
 	}
 
 	for _, tt := range intTests {
@@ -98,6 +106,51 @@ func TestEvalInfixExpression(t *testing.T) {
 		}
 
 		testIntegerObject(t, evaluated, tt.expected)
+	}
+
+	boolTests := []struct {
+		input    string
+		expected bool
+	}{
+		// Boolean Operations
+		{"true == true", true},
+		{"true == false", false},
+		{"true != false", true},
+		{"false == false", true},
+
+		// Comparison Operations
+		{"5 < 10", true},
+		{"10 > 5", true},
+		{"5 <= 5", true},
+		{"5 >= 5", true},
+		{"5 < 5", false},
+		{"5 > 5", false},
+		{"5 <= 4", false},
+		{"5 >= 6", false},
+		{"5 == 5", true},
+		{"5 != 5", false},
+		{"5 == 6", false},
+		{"5 != 6", true},
+
+		// Logical Operations
+		{"true && true", true},
+		{"true && false", false},
+		{"false || true", true},
+		{"false || false", false},
+
+		// Combined Operations
+		{"5 + 5 == 10", true},
+		{"5 + 5 != 10", false},
+		{"5 * 2 < 10", false},
+	}
+
+	for _, tt := range boolTests {
+		evaluated, errors := testEval(tt.input)
+		if errors != nil {
+			t.Fatalf("unexpected errors: %v", errors)
+		}
+
+		testBooleanObject(t, evaluated, tt.expected)
 	}
 }
 

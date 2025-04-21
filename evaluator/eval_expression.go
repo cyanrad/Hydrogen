@@ -73,21 +73,53 @@ func evalInfix(node ast.InfixExpression) object.Object {
 	left := EvalExpression(node.Left)
 	right := EvalExpression(node.Right)
 
-	leftType, leftOk := left.(*object.IntegerObj)
-	rightType, rightOk := right.(*object.IntegerObj)
-
+	leftInt, leftOk := left.(*object.IntegerObj)
+	rightInt, rightOk := right.(*object.IntegerObj)
 	if leftOk && rightOk {
 		switch node.TokenLiteral() {
 		case "+":
-			return &object.IntegerObj{Value: leftType.Value + rightType.Value}
+			return &object.IntegerObj{Value: leftInt.Value + rightInt.Value}
 		case "-":
-			return &object.IntegerObj{Value: leftType.Value - rightType.Value}
+			return &object.IntegerObj{Value: leftInt.Value - rightInt.Value}
 		case "*":
-			return &object.IntegerObj{Value: leftType.Value * rightType.Value}
+			return &object.IntegerObj{Value: leftInt.Value * rightInt.Value}
 		case "/":
-			return &object.IntegerObj{Value: leftType.Value / rightType.Value}
+			return &object.IntegerObj{Value: leftInt.Value / rightInt.Value}
 		case "%":
-			return &object.IntegerObj{Value: leftType.Value % rightType.Value}
+			return &object.IntegerObj{Value: leftInt.Value % rightInt.Value}
+		case "<":
+			return &object.BooleanObj{Value: leftInt.Value < rightInt.Value}
+		case "<=":
+			return &object.BooleanObj{Value: leftInt.Value <= rightInt.Value}
+		case ">":
+			return &object.BooleanObj{Value: leftInt.Value > rightInt.Value}
+		case ">=":
+			return &object.BooleanObj{Value: leftInt.Value >= rightInt.Value}
+		case "==":
+			return &object.BooleanObj{Value: leftInt.Value == rightInt.Value}
+		case "!=":
+			return &object.BooleanObj{Value: leftInt.Value != rightInt.Value}
+		case "&":
+			return &object.IntegerObj{Value: leftInt.Value & rightInt.Value}
+		case "|":
+			return &object.IntegerObj{Value: leftInt.Value | rightInt.Value}
+		default:
+			panic("unknown infix operator: " + node.TokenLiteral())
+		}
+	}
+
+	leftBool, leftOk := left.(*object.BooleanObj)
+	rightBool, rightOk := right.(*object.BooleanObj)
+	if leftOk && rightOk {
+		switch node.TokenLiteral() {
+		case "==":
+			return &object.BooleanObj{Value: leftBool.Value == rightBool.Value}
+		case "!=":
+			return &object.BooleanObj{Value: leftBool.Value != rightBool.Value}
+		case "&&":
+			return &object.BooleanObj{Value: leftBool.Value && rightBool.Value}
+		case "||":
+			return &object.BooleanObj{Value: leftBool.Value || rightBool.Value}
 		default:
 			panic("unknown infix operator")
 		}

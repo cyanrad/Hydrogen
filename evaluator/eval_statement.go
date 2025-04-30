@@ -14,7 +14,7 @@ func EvalStatement(s ast.Statement, env Environment) object.Object {
 	case ast.LetStatement:
 		return evalLetStatement(stmt, env)
 	case ast.ReturnStatement:
-		return evalReturnStatement(stmt)
+		return evalReturnStatement(stmt, env)
 	default:
 		panic("unknown statement type")
 	}
@@ -37,6 +37,6 @@ func evalLetStatement(stmt ast.LetStatement, env Environment) object.Object {
 	return object.NullObj{}
 }
 
-func evalReturnStatement(stmt ast.ReturnStatement) object.Object {
-	return object.NullObj{}
+func evalReturnStatement(stmt ast.ReturnStatement, env Environment) object.Object {
+	return EvalExpression(stmt.Expression, env)
 }

@@ -499,8 +499,8 @@ func TestComplexExpressions(t *testing.T) {
 }`,
 		},
 		{
-			"fn ThisIsFunction(xyz, what, hell) {xyz; let var = 123; if (xyz == 123) {bruh()}}",
-			`fn ThisIsFunction(xyz, what, hell) {
+			"fn (xyz, what, hell) {xyz; let var = 123; if (xyz == 123) {bruh()}}",
+			`fn (xyz, what, hell) {
 	xyz
 	let var = 123;
 	if (xyz == 123) {

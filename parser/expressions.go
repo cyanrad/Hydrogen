@@ -203,13 +203,6 @@ func (p *Parser) parseFunctionExpression() (ast.FunctionExpression, []error) {
 	fn := p.currToken
 	p.nextToken()
 
-	// the following logic is a remake of the call expression but only allows identifiers
-	if !p.currTokenIs(token.IDENTIFIER) {
-		return ast.FunctionExpression{}, []error{p.badTokenTypeError(token.IDENTIFIER)}
-	}
-	identifier := p.parseIdentifierExpression()
-	p.nextToken()
-
 	if !p.currTokenIs(token.LPAREN) {
 		return ast.FunctionExpression{}, []error{p.badTokenTypeError(token.LPAREN)}
 	}
@@ -244,9 +237,8 @@ func (p *Parser) parseFunctionExpression() (ast.FunctionExpression, []error) {
 	}
 
 	return ast.FunctionExpression{
-		Token:      fn,
-		Identifier: identifier,
-		Args:       args,
-		Body:       body,
+		Token: fn,
+		Args:  args,
+		Body:  body,
 	}, nil
 }

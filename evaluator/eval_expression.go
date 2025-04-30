@@ -20,6 +20,10 @@ func EvalExpression(n ast.Expression, env Environment) object.Object {
 		return evalIf(exp, env)
 	case ast.IdentifierExpression:
 		return evalIdentifier(exp, env)
+	case ast.FunctionExpression:
+		return evalFunction(exp)
+	case ast.CallExpression:
+		return evalCall(exp, env)
 	default:
 		panic("unknown expression type")
 	}
@@ -156,4 +160,35 @@ func evalIdentifier(node ast.IdentifierExpression, env Environment) object.Objec
 	}
 
 	panic("unknown identifier: " + node.TokenLiteral())
+}
+
+func evalFunction(node ast.FunctionExpression) object.Object {
+	args := []string{}
+	for _, arg := range node.Args {
+		args = append(args, arg.TokenLiteral())
+	}
+
+	return object.FunctionObj{
+		Parameters: args,
+		Body:       node.Body,
+	}
+}
+
+func evalCall(node ast.CallExpression, env Environment) object.Object {
+	obj := env.GetVariable(node.Identifier.TokenLiteral())
+	if obj == nil {
+		panic("unknown function: " + node.Identifier.TokenLiteral())
+	}
+
+	funcObj := obj.(object.FunctionObj)
+	funcEnv := NewEnvironment()
+	for i, arg := range node.Args {
+		exp := EvalExpression(arg, env)
+		if i >= len(funcObj.Parameters) {
+			panic("too many arguments")
+		}
+		funcEnv.CreateVariable(funcObj.Parameters[i], exp)
+	}
+
+	return EvalStatement(funcObj.Body, funcEnv)
 }

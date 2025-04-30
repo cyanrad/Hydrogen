@@ -1,6 +1,10 @@
 package object
 
-import "strconv"
+import (
+	"main/ast"
+	"strconv"
+	"strings"
+)
 
 type Object interface {
 	Type() ObjectType
@@ -30,3 +34,13 @@ type NullObj struct{}
 
 func (n NullObj) Type() ObjectType { return NULL_OBJ }
 func (n NullObj) Inspect() string  { return "null" }
+
+type FunctionObj struct {
+	Parameters []string
+	Body       ast.BlockStatement
+}
+
+func (f FunctionObj) Type() ObjectType { return FUNCTION_OBJ }
+func (f FunctionObj) Inspect() string {
+	return "fn(" + strings.Join(f.Parameters, ", ") + ")"
+}

@@ -28,10 +28,9 @@ func (p *Parser) parseLetStatement() (ast.LetStatement, []error) {
 	if len(errs) != 0 {
 		return ast.LetStatement{}, errs
 	}
-	p.nextToken()
 
-	if !p.currTokenIs(token.SEMICOLON) {
-		return ast.LetStatement{}, []error{p.badTokenTypeError(token.SEMICOLON)}
+	if p.peekTokenIs(token.SEMICOLON) {
+		p.nextToken()
 	}
 
 	return ast.LetStatement{
@@ -50,10 +49,9 @@ func (p *Parser) parseReturnStatement() (ast.ReturnStatement, []error) {
 	if len(errs) != 0 {
 		return ast.ReturnStatement{}, errs
 	}
-	p.nextToken()
 
-	if !p.currTokenIs(token.SEMICOLON) {
-		return ast.ReturnStatement{}, []error{p.badTokenTypeError(token.SEMICOLON)}
+	if p.peekTokenIs(token.SEMICOLON) {
+		p.nextToken()
 	}
 
 	return ast.ReturnStatement{

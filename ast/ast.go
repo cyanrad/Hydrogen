@@ -244,10 +244,9 @@ func (ce CallExpression) String() string {
 
 type FunctionExpression struct {
 	// Expression
-	Token      token.Token // token.FUNCTION
-	Identifier IdentifierExpression
-	Args       []IdentifierExpression
-	Body       BlockStatement
+	Token token.Token // token.FUNCTION
+	Args  []IdentifierExpression
+	Body  BlockStatement
 }
 
 func (fe FunctionExpression) TokenLiteral() string { return fe.Token.Literal }
@@ -255,8 +254,7 @@ func (fe FunctionExpression) expressionNode()      {}
 func (fe FunctionExpression) String() string {
 	var sb strings.Builder
 
-	sb.WriteString("fn ")
-	sb.WriteString(fe.Identifier.String() + "(")
+	sb.WriteString("fn (")
 	for i, a := range fe.Args {
 		sb.WriteString(a.String())
 		if i != len(fe.Args)-1 {

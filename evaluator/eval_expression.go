@@ -6,18 +6,20 @@ import (
 	"strconv"
 )
 
-func EvalExpression(n ast.Expression) object.Object {
+func EvalExpression(n ast.Expression, env Environment) object.Object {
 	switch exp := n.(type) {
 	case ast.IntExpression:
 		return evalInteger(exp)
 	case ast.BooleanExpression:
 		return evalBoolean(exp)
 	case ast.PrefixExpression:
-		return evalPrefix(exp)
+		return evalPrefix(exp, env)
 	case ast.InfixExpression:
-		return evalInfix(exp)
+		return evalInfix(exp, env)
 	case ast.IfExpression:
-		return evalIf(exp)
+		return evalIf(exp, env)
+	case ast.IdentifierExpression:
+		return evalIdentifier(exp, env)
 	default:
 		panic("unknown expression type")
 	}
@@ -41,8 +43,8 @@ func evalBoolean(node ast.BooleanExpression) object.Object {
 	panic("unknown boolean value")
 }
 
-func evalPrefix(node ast.PrefixExpression) object.Object {
-	exp := EvalExpression(node.Expression)
+func evalPrefix(node ast.PrefixExpression, env Environment) object.Object {
+	exp := EvalExpression(node.Expression, env)
 
 	if intexp, ok := exp.(*object.IntegerObj); ok {
 		switch node.TokenLiteral() {
@@ -71,9 +73,9 @@ func evalPrefix(node ast.PrefixExpression) object.Object {
 	}
 }
 
-func evalInfix(node ast.InfixExpression) object.Object {
-	left := EvalExpression(node.Left)
-	right := EvalExpression(node.Right)
+func evalInfix(node ast.InfixExpression, env Environment) object.Object {
+	left := EvalExpression(node.Left, env)
+	right := EvalExpression(node.Right, env)
 
 	leftInt, leftOk := left.(*object.IntegerObj)
 	rightInt, rightOk := right.(*object.IntegerObj)
@@ -130,19 +132,28 @@ func evalInfix(node ast.InfixExpression) object.Object {
 	panic("failed to match left and right types")
 }
 
-func evalIf(node ast.IfExpression) object.Object {
+func evalIf(node ast.IfExpression, env Environment) object.Object {
 	// looping over the conditions, return the block of the first condition that evaluates to true
 	for i, condition := range node.Conditions {
-		cond := EvalExpression(condition)
+		cond := EvalExpression(condition, env)
 		if boolCond, ok := cond.(*object.BooleanObj); ok && boolCond.Value {
-			return EvalStatement(node.Blocks[i])
+			return EvalStatement(node.Blocks[i], env)
 		}
 	}
 
 	// the else condition
 	if len(node.Blocks) > len(node.Conditions) {
-		return EvalStatement(node.Blocks[len(node.Blocks)-1])
+		return EvalStatement(node.Blocks[len(node.Blocks)-1], env)
 	}
 
 	return &object.NullObj{}
+}
+
+func evalIdentifier(node ast.IdentifierExpression, env Environment) object.Object {
+	// check if the identifier is a variable in the environment
+	if obj := env.GetVariable(node.TokenLiteral()); obj != nil {
+		return obj
+	}
+
+	panic("unknown identifier: " + node.TokenLiteral())
 }

@@ -272,5 +272,6 @@ func testEval(input string) (object.Object, []error) {
 		return nil, errors
 	}
 
-	return Eval(program), nil
+	env := NewEnvironment()
+	return Eval(program, env), nil
 }

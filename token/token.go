@@ -9,6 +9,7 @@ const (
 	IDENTIFIER = "IDENTIFIER" // x, y, foo, variables, ...
 	INT        = "INT"        // integers: 1,2,3,...
 	BOOLEAN    = "BOOLEAN"    // true or false
+	STRING     = "STRING"     // string literals: "hello"
 
 	// keywords
 	LET      = "LET"

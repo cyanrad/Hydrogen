@@ -30,6 +30,13 @@ func (b BooleanObj) Inspect() string {
 	return "false"
 }
 
+type StringObj struct {
+	Value string
+}
+
+func (s StringObj) Type() ObjectType { return STRING_OBJ }
+func (s StringObj) Inspect() string  { return s.Value }
+
 type NullObj struct{}
 
 func (n NullObj) Type() ObjectType { return NULL_OBJ }

@@ -28,12 +28,12 @@ func evalBlockStatement(block ast.BlockStatement, env Environment) object.Object
 func evalLetStatement(stmt ast.LetStatement, env Environment) object.Object {
 	// Check if the variable already exists in the environment
 	ident := stmt.Identifier.TokenLiteral()
-	existingVar := env.GetVariable(ident)
+	existingVar := env.Get(ident)
 	if existingVar != nil {
 		panic("variable already exists")
 	}
 
-	env.CreateVariable(ident, EvalExpression(stmt.Expression, env))
+	env.Create(ident, EvalExpression(stmt.Expression, env))
 	return object.NullObj{}
 }
 

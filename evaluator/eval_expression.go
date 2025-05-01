@@ -12,6 +12,8 @@ func EvalExpression(n ast.Expression, env Environment) object.Object {
 		return evalInteger(exp)
 	case ast.BooleanExpression:
 		return evalBoolean(exp)
+	case ast.StringExpression:
+		return evalString(exp)
 	case ast.PrefixExpression:
 		return evalPrefix(exp, env)
 	case ast.InfixExpression:
@@ -45,6 +47,10 @@ func evalBoolean(node ast.BooleanExpression) object.Object {
 		return &object.BooleanObj{Value: false}
 	}
 	panic("unknown boolean value")
+}
+
+func evalString(node ast.StringExpression) object.Object {
+	return &object.StringObj{Value: node.TokenLiteral()}
 }
 
 func evalPrefix(node ast.PrefixExpression, env Environment) object.Object {
@@ -133,21 +139,38 @@ func evalInfix(node ast.InfixExpression, env Environment) object.Object {
 		}
 	}
 
+	leftStr, leftOk := left.(*object.StringObj)
+	rightStr, rightOk := right.(*object.StringObj)
+	if leftOk && rightOk {
+		switch node.TokenLiteral() {
+		case "==":
+			return &object.BooleanObj{Value: leftStr.Value == rightStr.Value}
+		case "!=":
+			return &object.BooleanObj{Value: leftStr.Value != rightStr.Value}
+		case "+":
+			return &object.StringObj{Value: leftStr.Value + rightStr.Value}
+		default:
+			panic("unknown infix operator")
+		}
+	}
+
 	panic("failed to match left and right types")
 }
 
 func evalIf(node ast.IfExpression, env Environment) object.Object {
+	tempEnv := NewEnclosedEnvironment(env)
+
 	// looping over the conditions, return the block of the first condition that evaluates to true
 	for i, condition := range node.Conditions {
 		cond := EvalExpression(condition, env)
 		if boolCond, ok := cond.(*object.BooleanObj); ok && boolCond.Value {
-			return EvalStatement(node.Blocks[i], env)
+			return EvalStatement(node.Blocks[i], tempEnv)
 		}
 	}
 
 	// the else condition
 	if len(node.Blocks) > len(node.Conditions) {
-		return EvalStatement(node.Blocks[len(node.Blocks)-1], env)
+		return EvalStatement(node.Blocks[len(node.Blocks)-1], tempEnv)
 	}
 
 	return &object.NullObj{}
@@ -155,7 +178,7 @@ func evalIf(node ast.IfExpression, env Environment) object.Object {
 
 func evalIdentifier(node ast.IdentifierExpression, env Environment) object.Object {
 	// check if the identifier is a variable in the environment
-	if obj := env.GetVariable(node.TokenLiteral()); obj != nil {
+	if obj := env.Get(node.TokenLiteral()); obj != nil {
 		return obj
 	}
 
@@ -175,7 +198,7 @@ func evalFunction(node ast.FunctionExpression) object.Object {
 }
 
 func evalCall(node ast.CallExpression, env Environment) object.Object {
-	obj := env.GetVariable(node.Identifier.TokenLiteral())
+	obj := env.Get(node.Identifier.TokenLiteral())
 	if obj == nil {
 		panic("unknown function: " + node.Identifier.TokenLiteral())
 	}
@@ -187,7 +210,7 @@ func evalCall(node ast.CallExpression, env Environment) object.Object {
 		if i >= len(funcObj.Parameters) {
 			panic("too many arguments")
 		}
-		funcEnv.CreateVariable(funcObj.Parameters[i], exp)
+		funcEnv.Create(funcObj.Parameters[i], exp)
 	}
 
 	return EvalStatement(funcObj.Body, funcEnv)

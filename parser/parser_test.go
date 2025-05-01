@@ -451,6 +451,14 @@ func TestInfixExpressionStatements(t *testing.T) {
 			"add(a + b + c * d / f + g)",
 			"add((((a + b) + ((c * d) / f)) + g))",
 		},
+		{
+			"\"hello world\"",
+			"hello world",
+		},
+		{
+			"\"hello\" + \"world\"",
+			"(hello + world)",
+		},
 		// {
 		// 	"a * [1, 2, 3, 4][b * c] * d",
 		// 	"((a * ([1, 2, 3, 4][(b * c)])) * d)",
@@ -461,7 +469,8 @@ func TestInfixExpressionStatements(t *testing.T) {
 		// },
 	}
 
-	for i, tt := range tests {
+	for i := 0; i < len(tests); i++ {
+		tt := tests[i]
 		l := lexer.CreateLexer(tt.input)
 		p := CreateParser(l)
 		prog, errs := p.ParseProgram()

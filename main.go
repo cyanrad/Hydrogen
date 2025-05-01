@@ -9,6 +9,7 @@ import (
 
 	"main/evaluator"
 	"main/lexer"
+	"main/object"
 	"main/parser"
 )
 
@@ -47,7 +48,7 @@ func Start(in io.Reader, out io.Writer) {
 
 		// interpreting
 		evaluated := evaluator.Eval(program, env)
-		if evaluated != nil {
+		if evaluated != nil && evaluated.Type() != object.NULL_OBJ {
 			io.WriteString(out, evaluated.Inspect())
 			io.WriteString(out, "\n")
 		}

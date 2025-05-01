@@ -21,6 +21,8 @@ func (p *Parser) parseExpression(precedence int) (ast.Expression, []error) {
 		exp = p.parseBooleanExpression()
 	} else if p.currTokenIs(token.INT) {
 		exp, errs = p.parseIntExpression()
+	} else if p.currTokenIs(token.STRING) {
+		exp = p.parseStringExpression()
 	} else if p.currTokenIs(token.LPAREN) {
 		exp, errs = p.parseGroupedExpression()
 	} else if p.currTokenIs(token.IF) {
@@ -95,15 +97,11 @@ func (p *Parser) parseCallExpression() (ast.CallExpression, []error) {
 }
 
 func (p *Parser) parseIdentifierExpression() ast.IdentifierExpression {
-	return ast.IdentifierExpression{
-		Token: p.currToken,
-	}
+	return ast.IdentifierExpression{Token: p.currToken}
 }
 
 func (p *Parser) parseBooleanExpression() ast.BooleanExpression {
-	return ast.BooleanExpression{
-		Token: p.currToken,
-	}
+	return ast.BooleanExpression{Token: p.currToken}
 }
 
 func (p *Parser) parseIntExpression() (ast.IntExpression, []error) {
@@ -116,6 +114,10 @@ func (p *Parser) parseIntExpression() (ast.IntExpression, []error) {
 	return ast.IntExpression{
 		Token: token.Token{Type: token.INT, Literal: p.currToken.Literal},
 	}, nil
+}
+
+func (p *Parser) parseStringExpression() ast.StringExpression {
+	return ast.StringExpression{Token: p.currToken}
 }
 
 func (p *Parser) parseGroupedExpression() (ast.Expression, []error) {

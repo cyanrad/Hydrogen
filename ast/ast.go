@@ -182,6 +182,15 @@ type PrefixExpression struct {
 	Expression Expression
 }
 
+type StringExpression struct {
+	// Expression
+	Token token.Token // token.STRING + value
+}
+
+func (se StringExpression) TokenLiteral() string { return se.Token.Literal }
+func (se StringExpression) expressionNode()      {}
+func (se StringExpression) String() string       { return se.TokenLiteral() }
+
 func (pe PrefixExpression) TokenLiteral() string { return pe.Token.Literal }
 func (pe PrefixExpression) expressionNode()      {}
 func (pe PrefixExpression) String() string {

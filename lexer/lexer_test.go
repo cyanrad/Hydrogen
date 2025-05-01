@@ -51,6 +51,8 @@ for
 == != < <>>
 ===
 +=-=++--&&||>=<=
+
+"hello world"
  `
 
 	expected := []token.Token{
@@ -137,6 +139,7 @@ for
 		{Type: token.CONDITIONAL_OR, Literal: "||"},
 		{Type: token.GREATER_THAN_EQUAL, Literal: ">="},
 		{Type: token.LESS_THAN_EQUAL, Literal: "<="},
+		{Type: token.STRING, Literal: "hello world"},
 		{Type: token.EOF, Literal: ""},
 	}
 

@@ -5,6 +5,7 @@ const (
 	BOOLEAN_OBJ  = "BOOLEAN_OBJ" // true or false
 	NULL_OBJ     = "NULL_OBJ"
 	FUNCTION_OBJ = "FUNCTION_OBJ" // function object
+	STRING_OBJ   = "STRING_OBJ"   // "hello"
 )
 
 type ObjectType string

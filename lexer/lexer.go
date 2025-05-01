@@ -36,6 +36,8 @@ func (l *Lexer) GetNextToken() token.Token {
 		nextToken = l.NumberToken()
 	} else if isLetter(l.ch) {
 		nextToken = l.literalToken()
+	} else if l.ch == '"' {
+		nextToken = l.StringToken()
 	} else {
 		nextToken = l.specialToken()
 	}
@@ -64,6 +66,26 @@ func (l *Lexer) literalToken() token.Token {
 	}
 
 	return t
+}
+
+func (l *Lexer) StringToken() token.Token {
+	l.readChar()
+	p := l.position
+	for l.readPosition <= len(l.source) && l.ch != '"' {
+		l.readChar()
+
+		if l.ch == '\n' {
+			return token.Token{Type: token.ILLEGAL, Literal: ""}
+		}
+	}
+
+	if l.ch == '"' {
+		l.readChar()
+	} else {
+		return token.Token{Type: token.ILLEGAL, Literal: ""} // checking for proper string termination
+	}
+
+	return token.Token{Type: token.STRING, Literal: l.source[p : l.position-1]}
 }
 
 func (l *Lexer) specialToken() token.Token {

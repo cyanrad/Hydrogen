@@ -141,7 +141,8 @@ func TestLetStatementErrors(t *testing.T) {
 
 func TestReturnStatement(t *testing.T) {
 	input := `return 10;
-return xyz;`
+return xyz;
+return;`
 	l := lexer.CreateLexer(input)
 	p := CreateParser(l)
 
@@ -150,7 +151,7 @@ return xyz;`
 		t.Fatal(err)
 	}
 
-	statementCount := 2
+	statementCount := 3
 	if len(prog.Statements) != statementCount {
 		t.Fatalf("error - expected: %d statements - got: %d", statementCount, len(prog.Statements))
 	}
@@ -169,6 +170,10 @@ return xyz;`
 					Token: token.Token{Type: token.IDENTIFIER, Literal: "xyz"},
 				},
 			},
+			ast.ReturnStatement{
+				Token:      token.Token{Type: token.RETURN, Literal: "return"},
+				Expression: nil,
+			},
 		},
 	}
 
@@ -178,17 +183,13 @@ return xyz;`
 }
 
 func TestReturnStatementErrors(t *testing.T) {
-	input := `return ;
-return 12xyz;
-return =`
+	input := `return =`
 	l := lexer.CreateLexer(input)
 	p := CreateParser(l)
 
 	prog, err := p.ParseProgram()
 
 	expectedErr := []error{
-		errors.New("error - expected: expression - got: ;"),
-		errors.New("error - expected: ; - got: IDENTIFIER"),
 		errors.New("error - expected: expression - got: ="),
 	}
 

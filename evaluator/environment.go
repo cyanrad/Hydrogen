@@ -37,6 +37,8 @@ func (e *Environment) Get(name string) object.Object {
 		return value
 	} else if e.Outer != nil {
 		return e.Outer.Get(name)
+	} else if builtins[name] != nil {
+		return builtins[name]
 	}
 	return nil
 }

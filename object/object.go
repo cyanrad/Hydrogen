@@ -51,3 +51,13 @@ func (f FunctionObj) Type() ObjectType { return FUNCTION_OBJ }
 func (f FunctionObj) Inspect() string {
 	return "fn(" + strings.Join(f.Parameters, ", ") + ")"
 }
+
+type BuiltinFunction func(args ...Object) Object
+
+type Builtin struct {
+	Fn       BuiltinFunction
+	ArgCount int
+}
+
+func (b *Builtin) Type() ObjectType { return BUILTIN_OBJ }
+func (b *Builtin) Inspect() string  { return "builtin function" }

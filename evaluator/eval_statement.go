@@ -38,5 +38,9 @@ func evalLetStatement(stmt ast.LetStatement, env Environment) object.Object {
 }
 
 func evalReturnStatement(stmt ast.ReturnStatement, env Environment) object.Object {
+	if stmt.Expression == nil {
+		return object.NullObj{}
+	}
+
 	return EvalExpression(stmt.Expression, env)
 }

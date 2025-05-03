@@ -203,15 +203,30 @@ func evalCall(node ast.CallExpression, env Environment) object.Object {
 		panic("unknown function: " + node.Identifier.TokenLiteral())
 	}
 
-	funcObj := obj.(object.FunctionObj)
 	funcEnv := NewEnvironment()
-	for i, arg := range node.Args {
-		exp := EvalExpression(arg, env)
-		if i >= len(funcObj.Parameters) {
-			panic("too many arguments")
+	switch funcObj := obj.(type) {
+	case object.FunctionObj:
+		if len(node.Args) != len(funcObj.Parameters) {
+			panic("incorrect count of arguments")
 		}
-		funcEnv.Create(funcObj.Parameters[i], exp)
+		for i, arg := range node.Args {
+			exp := EvalExpression(arg, env)
+			funcEnv.Create(funcObj.Parameters[i], exp)
+		}
+
+		return EvalStatement(funcObj.Body, funcEnv)
+	case *object.Builtin:
+		if len(node.Args) != funcObj.ArgCount {
+			panic("incorrect count of arguments")
+		}
+
+		args := []object.Object{}
+		for _, arg := range node.Args {
+			args = append(args, EvalExpression(arg, env))
+		}
+		return funcObj.Fn(args...)
+	default:
+		panic("unknown function type (What the shit?)")
 	}
 
-	return EvalStatement(funcObj.Body, funcEnv)
 }

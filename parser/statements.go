@@ -43,11 +43,15 @@ func (p *Parser) parseLetStatement() (ast.LetStatement, []error) {
 
 func (p *Parser) parseReturnStatement() (ast.ReturnStatement, []error) {
 	returnToken := p.currToken
+	var exp ast.Expression = nil
 	p.nextToken()
 
-	exp, errs := p.parseExpression(LOWEST)
-	if len(errs) != 0 {
-		return ast.ReturnStatement{}, errs
+	if !p.currTokenIs(token.SEMICOLON) {
+		errs := []error{}
+		exp, errs = p.parseExpression(LOWEST)
+		if len(errs) != 0 {
+			return ast.ReturnStatement{}, errs
+		}
 	}
 
 	if p.peekTokenIs(token.SEMICOLON) {

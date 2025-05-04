@@ -12,6 +12,7 @@ func TestBuiltinFunctions(t *testing.T) {
 		{`len("")`, 0},
 		{`len("four")`, 4},
 		{`len("hello world")`, 11},
+		{"let test = {}; push(test, 1, 2); len(test)", 1},
 	}
 	for _, tt := range tests {
 		evaluated, _ := testEval(tt.input)

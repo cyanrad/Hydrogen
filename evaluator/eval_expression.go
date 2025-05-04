@@ -30,6 +30,8 @@ func EvalExpression(n ast.Expression, env Environment) object.Object {
 		return evalArray(exp, env)
 	case ast.IndexExpression:
 		return evalIndex(exp, env)
+	case ast.HashExpression:
+		return evalHash(exp, env)
 	default:
 		panic("unknown expression type")
 	}
@@ -220,10 +222,6 @@ func evalCall(node ast.CallExpression, env Environment) object.Object {
 
 		return EvalStatement(funcObj.Body, funcEnv)
 	case *object.Builtin:
-		if len(node.Args) != funcObj.ArgCount {
-			panic("incorrect count of arguments")
-		}
-
 		args := []object.Object{}
 		for _, arg := range node.Args {
 			args = append(args, EvalExpression(arg, env))
@@ -252,6 +250,10 @@ func evalIndex(node ast.IndexExpression, env Environment) object.Object {
 	switch indexObj := index.(type) {
 	case *object.IntegerObj:
 		return evalIntegerIndex(exp, indexObj)
+	case *object.BooleanObj:
+		return evalBoolIndex(exp, indexObj)
+	case *object.StringObj:
+		return evalStringIndex(exp, indexObj)
 	default:
 		panic("unsupported index data type")
 	}
@@ -261,15 +263,59 @@ func evalIntegerIndex(exp object.Object, index *object.IntegerObj) object.Object
 	switch expObj := exp.(type) {
 	case *object.ArrayObj:
 		if index.Value >= int64(len(expObj.Elements)) {
-			panic("index access out of range")
+			return &object.NullObj{}
 		}
 		return expObj.Elements[index.Value]
 	case *object.StringObj:
 		if index.Value >= int64(len(expObj.Value)) {
-			panic("index access out of range")
+			return &object.NullObj{}
 		}
 		return &object.StringObj{Value: string(expObj.Value[index.Value])}
+	case *object.HashObj:
+		if pair, ok := expObj.Pairs[index.HashKey()]; ok {
+			return pair.Value
+		}
+		return &object.NullObj{}
 	default:
 		panic("unindexable data type")
 	}
+}
+
+func evalBoolIndex(exp object.Object, index *object.BooleanObj) object.Object {
+	switch expObj := exp.(type) {
+	case *object.HashObj:
+		if pair, ok := expObj.Pairs[index.HashKey()]; ok {
+			return pair.Value
+		}
+		return &object.NullObj{}
+	default:
+		panic("unindexable data type")
+	}
+}
+
+func evalStringIndex(exp object.Object, index *object.StringObj) object.Object {
+	switch expObj := exp.(type) {
+	case *object.HashObj:
+		if pair, ok := expObj.Pairs[index.HashKey()]; ok {
+			return pair.Value
+		}
+		return &object.NullObj{}
+	default:
+		panic("unindexable data type")
+	}
+}
+
+func evalHash(node ast.HashExpression, env Environment) object.Object {
+	elems := map[object.HashKey]object.HashPair{}
+	for _, kvp := range node.Elems {
+		key := EvalExpression(kvp.Key, env)
+		hashKey, ok := key.(object.Hashable)
+		if !ok {
+			panic("unhashable key type")
+		}
+		value := EvalExpression(kvp.Value, env)
+		elems[hashKey.HashKey()] = object.HashPair{Key: key, Value: value}
+	}
+
+	return &object.HashObj{Pairs: elems}
 }

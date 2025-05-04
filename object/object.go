@@ -1,6 +1,7 @@
 package object
 
 import (
+	"hash/fnv"
 	"main/ast"
 	"strconv"
 	"strings"
@@ -11,12 +12,30 @@ type Object interface {
 	Inspect() string
 }
 
+type HashKey struct {
+	Type  ObjectType
+	Value uint64
+}
+
+type HashPair struct {
+	Key   Object
+	Value Object
+}
+
+type Hashable interface {
+	Object
+	HashKey() HashKey
+}
+
 type IntegerObj struct {
 	Value int64
 }
 
 func (i IntegerObj) Type() ObjectType { return INT_OBJ }
 func (i IntegerObj) Inspect() string  { return strconv.Itoa(int(i.Value)) }
+func (i *IntegerObj) HashKey() HashKey {
+	return HashKey{Type: i.Type(), Value: uint64(i.Value)}
+}
 
 type BooleanObj struct {
 	Value bool
@@ -30,12 +49,27 @@ func (b BooleanObj) Inspect() string {
 	return "false"
 }
 
+func (b *BooleanObj) HashKey() HashKey {
+	var value uint64
+	if b.Value {
+		value = 1
+	} else {
+		value = 0
+	}
+	return HashKey{Type: b.Type(), Value: value}
+}
+
 type StringObj struct {
 	Value string
 }
 
 func (s StringObj) Type() ObjectType { return STRING_OBJ }
 func (s StringObj) Inspect() string  { return s.Value }
+func (s *StringObj) HashKey() HashKey {
+	h := fnv.New64a()
+	h.Write([]byte(s.Value))
+	return HashKey{Type: s.Type(), Value: h.Sum64()}
+}
 
 type NullObj struct{}
 
@@ -55,8 +89,7 @@ func (f FunctionObj) Inspect() string {
 type BuiltinFunction func(args ...Object) Object
 
 type Builtin struct {
-	Fn       BuiltinFunction
-	ArgCount int
+	Fn BuiltinFunction
 }
 
 func (b *Builtin) Type() ObjectType { return BUILTIN_OBJ }
@@ -73,4 +106,17 @@ func (a ArrayObj) Inspect() string {
 		elements = append(elements, element.Inspect())
 	}
 	return "[" + strings.Join(elements, ", ") + "]"
+}
+
+type HashObj struct {
+	Pairs map[HashKey]HashPair
+}
+
+func (h HashObj) Type() ObjectType { return HASH_OBJ }
+func (h HashObj) Inspect() string {
+	var pairs []string
+	for _, pair := range h.Pairs {
+		pairs = append(pairs, pair.Key.Inspect()+": "+pair.Value.Inspect())
+	}
+	return "{" + strings.Join(pairs, ", ") + "}"
 }

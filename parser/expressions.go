@@ -31,6 +31,8 @@ func (p *Parser) parseExpression(precedence int) (ast.Expression, []error) {
 		exp, errs = p.parseFunctionExpression()
 	} else if p.currTokenIs(token.LSQPAREN) {
 		exp, errs = p.parseArrayExpression()
+	} else if p.currTokenIs(token.LBRACKET) {
+		exp, errs = p.ParseHashExpression()
 	} else {
 		return nil, []error{fmt.Errorf("error - expected: expression - got: %s", p.currToken.Type)}
 	}
@@ -294,4 +296,57 @@ func (p *Parser) parseExpressionList(terminationToken token.TokenType) ([]ast.Ex
 	}
 
 	return args, nil
+}
+
+func (p *Parser) ParseHashExpression() (ast.HashExpression, []error) {
+	lb := p.currToken
+	p.nextToken()
+
+	elems := []ast.KeyValuePair{}
+	for !p.currTokenIs(token.RBRACKET) {
+		// parsing expression
+		exp, errs := p.parseKeyValuePairExpression()
+		if len(errs) != 0 {
+			return ast.HashExpression{}, errs
+		}
+
+		elems = append(elems, exp)
+		p.nextToken()
+
+		// parsing comma
+		if !p.currTokenIs(token.COMMA) {
+			break
+		}
+		p.nextToken()
+	}
+
+	return ast.HashExpression{
+		Token: lb,
+		Elems: elems,
+	}, nil
+}
+
+func (p *Parser) parseKeyValuePairExpression() (ast.KeyValuePair, []error) {
+	key, errs := p.parseExpression(LOWEST)
+	if len(errs) != 0 {
+		return ast.KeyValuePair{}, errs
+	}
+
+	p.nextToken()
+	if !p.currTokenIs(token.COLON) {
+		return ast.KeyValuePair{}, []error{p.badTokenTypeError(token.COLON)}
+	}
+	colon := p.currToken
+
+	p.nextToken()
+	value, errs := p.parseExpression(LOWEST)
+	if len(errs) != 0 {
+		return ast.KeyValuePair{}, errs
+	}
+
+	return ast.KeyValuePair{
+		Token: colon,
+		Key:   key,
+		Value: value,
+	}, nil
 }

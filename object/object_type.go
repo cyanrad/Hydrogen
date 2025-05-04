@@ -8,6 +8,7 @@ const (
 	BUILTIN_OBJ  = "BUILTIN_OBJ"  // built-in function object
 	STRING_OBJ   = "STRING_OBJ"   // "hello"
 	ARRAY_OBJ    = "ARRAY_OBJ"    // [1,2,3]
+	HASH_OBJ     = "HASH_OBJ"     // {"key": "value"}
 )
 
 type ObjectType string

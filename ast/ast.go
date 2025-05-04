@@ -319,3 +319,45 @@ func (fe FunctionExpression) String() string {
 
 	return sb.String()
 }
+
+type KeyValuePair struct {
+	// Expression
+	Token token.Token // token.COLON
+	Key   Expression
+	Value Expression
+}
+
+func (kvp KeyValuePair) TokenLiteral() string { return kvp.Token.Literal }
+func (kvp KeyValuePair) expressionNode()      {}
+func (kvp KeyValuePair) String() string {
+	var sb strings.Builder
+
+	sb.WriteString(kvp.Key.String())
+	sb.WriteString(": ")
+	sb.WriteString(kvp.Value.String())
+
+	return sb.String()
+}
+
+type HashExpression struct {
+	// Expression
+	Token token.Token // the { token
+	Elems []KeyValuePair
+}
+
+func (he HashExpression) TokenLiteral() string { return he.Token.Literal }
+func (he HashExpression) expressionNode()      {}
+func (he HashExpression) String() string {
+	var sb strings.Builder
+
+	sb.WriteString("{")
+	for i, a := range he.Elems {
+		sb.WriteString(a.String())
+		if i != len(he.Elems)-1 {
+			sb.WriteString(", ")
+		}
+	}
+	sb.WriteString("}")
+
+	return sb.String()
+}

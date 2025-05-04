@@ -472,6 +472,10 @@ func TestInfixExpressionStatements(t *testing.T) {
 			"xyz[\"str\"]",
 			"(xyz[str])",
 		},
+		{
+			"{\"str\": 5, true: xyz, 5: false}",
+			"{str: 5, true: xyz, 5: false}",
+		},
 	}
 
 	for i := 0; i < len(tests); i++ {

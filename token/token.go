@@ -26,6 +26,7 @@ const (
 	// delimiters
 	COMMA     = ","
 	SEMICOLON = ";"
+	COLON     = ":"
 
 	// brackets
 	LPAREN   = "("
@@ -100,6 +101,7 @@ var specialTokenMap map[string]Token = map[string]Token{
 	"]": {Type: RSQPAREN, Literal: "]"},
 	",": {Type: COMMA, Literal: ","},
 	";": {Type: SEMICOLON, Literal: ";"},
+	":": {Type: COLON, Literal: ":"},
 
 	// double char
 	"+=": {Type: PLUS_EQUAL, Literal: "+="},

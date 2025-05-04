@@ -53,6 +53,8 @@ for
 +=-=++--&&||>=<=
 
 "hello world"
+[1, 2];
+{"foo": "bar"}
  `
 
 	expected := []token.Token{
@@ -140,6 +142,17 @@ for
 		{Type: token.GREATER_THAN_EQUAL, Literal: ">="},
 		{Type: token.LESS_THAN_EQUAL, Literal: "<="},
 		{Type: token.STRING, Literal: "hello world"},
+		{Type: token.LSQPAREN, Literal: "["},
+		{Type: token.INT, Literal: "1"},
+		{Type: token.COMMA, Literal: ","},
+		{Type: token.INT, Literal: "2"},
+		{Type: token.RSQPAREN, Literal: "]"},
+		{Type: token.SEMICOLON, Literal: ";"},
+		{Type: token.LBRACKET, Literal: "{"},
+		{Type: token.STRING, Literal: "foo"},
+		{Type: token.COLON, Literal: ":"},
+		{Type: token.STRING, Literal: "bar"},
+		{Type: token.RBRACKET, Literal: "}"},
 		{Type: token.EOF, Literal: ""},
 	}
 

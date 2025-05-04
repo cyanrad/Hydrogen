@@ -1,0 +1,35 @@
+{
+    "name": "hydrogen-syntax",
+    "displayName": "Hydrogen Syntax Highlighting",
+    "description": "Basic syntax highlighting for Hydrogen (.hy)",
+    "version": "0.0.1",
+    "publisher": "your-name",
+    "engines": {
+        "vscode": "^1.50.0"
+    },
+    "categories": [
+        "Programming Languages"
+    ],
+    "contributes": {
+        "languages": [
+            {
+                "id": "hydrogen",
+                "aliases": [
+                    "Hydrogen",
+                    "hydrogen"
+                ],
+                "extensions": [
+                    ".hy"
+                ],
+                "configuration": "./language-configuration.json"
+            }
+        ],
+        "grammars": [
+            {
+                "language": "hydrogen",
+                "scopeName": "source.hydrogen",
+                "path": "./syntaxes/hydrogen.tmLanguage.json"
+            }
+        ]
+    }
+}

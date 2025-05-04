@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"flag"
 	"fmt"
 	"io"
 	"os"
@@ -21,7 +22,54 @@ import (
 
 const PROMPT = ">> "
 
-func Start(in io.Reader, out io.Writer) {
+func main() {
+	var filepath string
+	flag.StringVar(&filepath, "file", "", "Specify entry point")
+	flag.Parse()
+
+	if filepath != "" {
+		interpretFile(filepath)
+	} else {
+		repl()
+	}
+
+}
+
+func interpretFile(filepath string) {
+	data, err := os.ReadFile(filepath)
+	if err != nil {
+		fmt.Println("Error reading file:", err)
+	}
+
+	// tokenizing
+	l := lexer.CreateLexer(string(data))
+
+	// parsing
+	p := parser.CreateParser(l)
+	program, errs := p.ParseProgram()
+	if len(errs) != 0 {
+		for _, e := range errs {
+			fmt.Println(e.Error())
+		}
+		return
+	}
+
+	// interpreting
+	env := evaluator.NewEnvironment()
+	evaluator.Eval(program, env)
+}
+
+func repl() {
+	user, err := user.Current()
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("Hello %s! This is the Monkey programming language!\n", user.Username)
+	fmt.Printf("Feel free to type in commands\n")
+	StartRepl(os.Stdin, os.Stdout)
+}
+
+func StartRepl(in io.Reader, out io.Writer) {
 	scanner := bufio.NewScanner(in)
 	env := evaluator.NewEnvironment()
 	for {
@@ -60,15 +108,4 @@ func printParserErrors(out io.Writer, errors []error) {
 		str := fmt.Sprintf("%v", msg)
 		io.WriteString(out, "\t"+str+"\n")
 	}
-}
-
-func main() {
-	user, err := user.Current()
-	if err != nil {
-		panic(err)
-	}
-	fmt.Printf("Hello %s! This is the Monkey programming language!\n",
-		user.Username)
-	fmt.Printf("Feel free to type in commands\n")
-	Start(os.Stdin, os.Stdout)
 }

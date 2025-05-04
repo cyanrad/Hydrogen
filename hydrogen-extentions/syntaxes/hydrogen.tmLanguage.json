@@ -2,8 +2,58 @@
     "scopeName": "source.hydrogen",
     "patterns": [
         {
+            "name": "comment.single.number-sign.hydrogen",
+            "match": "#.*$"
+        },
+        {
+            "name": "comment.block.hydrogen",
+            "match": "\\/\\*.*\\*\\/"
+        },
+        {
+            "name": "constant.language.hydrogen",
+            "match": "\\b(true|false|null)\\b"
+        },
+        {
+            "name": "constant.numberic.hydrogen",
+            "match": "\\b\\d+\\b"
+        },
+        {
+            "name": "constant.other.hydrogen",
+            "match": "\b[A-Z]+\b"
+        },
+        {
+            "name": "entity.name.function.hydrogen",
+            "match": "\\b\\w+(?=\\s*\\()"
+        },
+        {
+            "name": "keyword.operator.hydrogen",
+            "match": "\\b(and|or|not|in|is)\\b"
+        },
+        {
+            "name": "string.quoted.double.hydrogen",
+            "begin": "\"",
+            "end": "\"",
+            "patterns": [
+                {
+                    "name": "constant.character.escape.hydrogen",
+                    "match": "\\\\."
+                }
+            ]
+        },
+        {
+            "name": "string.quoted.single.hydrogen",
+            "begin": "'",
+            "end": "'",
+            "patterns": [
+                {
+                    "name": "constant.character.escape.hydrogen",
+                    "match": "\\\\."
+                }
+            ]
+        },
+        {
             "name": "keyword.control.hydrogen",
-            "match": "\\blet\\b"
+            "match": "\\b(let|return|if|else|for|fn)\\b"
         },
         {
             "name": "variable.other.hydrogen",
@@ -17,10 +67,6 @@
         {
             "name": "keyword.operator.assignment.hydrogen",
             "match": "="
-        },
-        {
-            "name": "meta.expression.hydrogen",
-            "match": "=\\s*[^\\n]+"
         }
     ],
     "repository": {},

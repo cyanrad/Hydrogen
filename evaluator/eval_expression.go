@@ -26,6 +26,10 @@ func EvalExpression(n ast.Expression, env Environment) object.Object {
 		return evalFunction(exp)
 	case ast.CallExpression:
 		return evalCall(exp, env)
+	case ast.ArrayExpression:
+		return evalArray(exp, env)
+	case ast.IndexExpression:
+		return evalIndex(exp, env)
 	default:
 		panic("unknown expression type")
 	}
@@ -229,4 +233,43 @@ func evalCall(node ast.CallExpression, env Environment) object.Object {
 		panic("unknown function type (What the shit?)")
 	}
 
+}
+
+func evalArray(node ast.ArrayExpression, env Environment) object.Object {
+	elems := []object.Object{}
+	for _, e := range node.Elems {
+		obj := EvalExpression(e, env)
+		elems = append(elems, obj)
+	}
+
+	return &object.ArrayObj{Elements: elems}
+}
+
+func evalIndex(node ast.IndexExpression, env Environment) object.Object {
+	exp := EvalExpression(node.Exp, env)
+	index := EvalExpression(node.Index, env)
+
+	switch indexObj := index.(type) {
+	case *object.IntegerObj:
+		return evalIntegerIndex(exp, indexObj)
+	default:
+		panic("unsupported index data type")
+	}
+}
+
+func evalIntegerIndex(exp object.Object, index *object.IntegerObj) object.Object {
+	switch expObj := exp.(type) {
+	case *object.ArrayObj:
+		if index.Value >= int64(len(expObj.Elements)) {
+			panic("index access out of range")
+		}
+		return expObj.Elements[index.Value]
+	case *object.StringObj:
+		if index.Value >= int64(len(expObj.Value)) {
+			panic("index access out of range")
+		}
+		return &object.StringObj{Value: string(expObj.Value[index.Value])}
+	default:
+		panic("unindexable data type")
+	}
 }

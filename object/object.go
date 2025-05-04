@@ -61,3 +61,16 @@ type Builtin struct {
 
 func (b *Builtin) Type() ObjectType { return BUILTIN_OBJ }
 func (b *Builtin) Inspect() string  { return "builtin function" }
+
+type ArrayObj struct {
+	Elements []Object
+}
+
+func (a ArrayObj) Type() ObjectType { return ARRAY_OBJ }
+func (a ArrayObj) Inspect() string {
+	var elements []string
+	for _, element := range a.Elements {
+		elements = append(elements, element.Inspect())
+	}
+	return "[" + strings.Join(elements, ", ") + "]"
+}

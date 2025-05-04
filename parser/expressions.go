@@ -29,6 +29,8 @@ func (p *Parser) parseExpression(precedence int) (ast.Expression, []error) {
 		exp, errs = p.ParseIfExpression()
 	} else if p.currTokenIs(token.FUNCTION) {
 		exp, errs = p.parseFunctionExpression()
+	} else if p.currTokenIs(token.LSQPAREN) {
+		exp, errs = p.parseArrayExpression()
 	} else {
 		return nil, []error{fmt.Errorf("error - expected: expression - got: %s", p.currToken.Type)}
 	}
@@ -66,27 +68,9 @@ func (p *Parser) parseCallExpression() (ast.CallExpression, []error) {
 	p.nextToken()
 	p.nextToken()
 
-	args := []ast.Expression{}
-	// this whole thing (parsing comma seperated expressions) should be abstracted out
-	if !p.currTokenIs(token.RPAREN) {
-		for {
-			exp, errs := p.parseExpression(LOWEST)
-			if len(errs) != 0 {
-				return ast.CallExpression{}, errs
-			}
-
-			args = append(args, exp)
-			p.nextToken()
-
-			if !p.currTokenIs(token.COMMA) {
-				break
-			}
-			p.nextToken()
-		}
-
-		if !p.currTokenIs(token.RPAREN) {
-			return ast.CallExpression{}, []error{p.badTokenTypeError(token.RPAREN)}
-		}
+	args, errs := p.parseExpressionList(token.RPAREN) // Fixed typo: Seperated -> Separated
+	if len(errs) != 0 {
+		return ast.CallExpression{}, errs
 	}
 
 	return ast.CallExpression{
@@ -182,14 +166,25 @@ func (p *Parser) ParseIfExpression() (ast.IfExpression, []error) {
 	}, []error{}
 }
 
-func (p *Parser) parseInfixExpression(left ast.Expression) (ast.InfixExpression, []error) {
+func (p *Parser) parseInfixExpression(left ast.Expression) (ast.Expression, []error) {
 	p.nextToken()
 
 	precedence := p.currPrecedence()
 	operator := p.currToken
-	p.nextToken()
 
-	right, errs := p.parseExpression(precedence)
+	var right ast.Expression
+	var errs []error
+
+	if operator.Type == token.LSQPAREN {
+		right, errs = p.parseIndexExpression(left)
+		if len(errs) != 0 {
+			return ast.IndexExpression{}, errs
+		}
+		return right, nil
+	}
+
+	p.nextToken()
+	right, errs = p.parseExpression(precedence)
 	if len(errs) != 0 {
 		return ast.InfixExpression{}, errs
 	}
@@ -243,4 +238,60 @@ func (p *Parser) parseFunctionExpression() (ast.FunctionExpression, []error) {
 		Args:  args,
 		Body:  body,
 	}, nil
+}
+
+func (p *Parser) parseArrayExpression() (ast.Expression, []error) {
+	lqp := p.currToken
+	p.nextToken()
+
+	elems, errs := p.parseExpressionList(token.RSQPAREN)
+	if len(errs) != 0 {
+		return ast.ArrayExpression{}, errs
+	}
+
+	return ast.ArrayExpression{
+		Token: lqp,
+		Elems: elems,
+	}, nil
+}
+
+func (p *Parser) parseIndexExpression(left ast.Expression) (ast.IndexExpression, []error) {
+	lqp := p.currToken
+	p.nextToken()
+
+	indexExp, errs := p.parseExpression(LOWEST)
+	if len(errs) != 0 {
+		return ast.IndexExpression{}, errs
+	}
+	p.nextToken()
+
+	return ast.IndexExpression{
+		Token: lqp,
+		Exp:   left,
+		Index: indexExp,
+	}, nil
+
+}
+
+func (p *Parser) parseExpressionList(terminationToken token.TokenType) ([]ast.Expression, []error) {
+	args := []ast.Expression{}
+
+	for !p.currTokenIs(terminationToken) {
+		// parsing expression
+		exp, errs := p.parseExpression(LOWEST)
+		if len(errs) != 0 {
+			return nil, errs
+		}
+
+		args = append(args, exp)
+		p.nextToken()
+
+		// parsing comma
+		if !p.currTokenIs(token.COMMA) {
+			break
+		}
+		p.nextToken()
+	}
+
+	return args, nil
 }

@@ -68,6 +68,7 @@ var legalInfexOperator = map[token.TokenType]struct{}{
 	token.CONDITIONAL_NOT_EQUAL: {},
 	token.GREATER_THAN_EQUAL:    {},
 	token.LESS_THAN_EQUAL:       {},
+	token.LSQPAREN:              {},
 }
 
 func IsLegalInfixOperator(t token.TokenType) bool {
@@ -87,6 +88,7 @@ const (
 	PRODUCT         // *
 	PREFIX          // -x or !x
 	CALL            // myFunc(x)
+	INDEX           // myArray[x]
 )
 
 var precedences = map[token.TokenType]int{
@@ -105,4 +107,5 @@ var precedences = map[token.TokenType]int{
 	token.SLASH:                 PRODUCT,
 	token.ASTERISK:              PRODUCT,
 	token.MODULUS:               PRODUCT,
+	token.LSQPAREN:              INDEX,
 }

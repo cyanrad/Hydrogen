@@ -251,6 +251,50 @@ func (ce CallExpression) String() string {
 	return sb.String()
 }
 
+type ArrayExpression struct {
+	// Expression
+	Token token.Token // the [ token
+	Elems []Expression
+}
+
+func (ae ArrayExpression) TokenLiteral() string { return ae.Token.Literal }
+func (ae ArrayExpression) expressionNode()      {}
+func (ae ArrayExpression) String() string {
+	var sb strings.Builder
+
+	sb.WriteString("[")
+	for i, a := range ae.Elems {
+		sb.WriteString(a.String())
+		if i != len(ae.Elems)-1 {
+			sb.WriteString(", ")
+		}
+	}
+	sb.WriteString("]")
+
+	return sb.String()
+}
+
+type IndexExpression struct {
+	// Expression
+	Token token.Token // the [ token
+	Exp   Expression  // Expression attempting to be indexed
+	Index Expression
+}
+
+func (ie IndexExpression) TokenLiteral() string { return ie.Token.Literal }
+func (ie IndexExpression) expressionNode()      {}
+func (ie IndexExpression) String() string {
+	var sb strings.Builder
+
+	sb.WriteString("(")
+	sb.WriteString(ie.Exp.String())
+	sb.WriteString("[")
+	sb.WriteString(ie.Index.String())
+	sb.WriteString("])")
+
+	return sb.String()
+}
+
 type FunctionExpression struct {
 	// Expression
 	Token token.Token // token.FUNCTION

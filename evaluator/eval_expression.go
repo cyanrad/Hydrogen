@@ -209,9 +209,9 @@ func evalCall(node ast.CallExpression, env Environment) object.Object {
 		panic("unknown function: " + node.Identifier.TokenLiteral())
 	}
 
-	funcEnv := NewEnclosedEnvironment(env)
 	switch funcObj := obj.(type) {
 	case object.FunctionObj:
+		funcEnv := NewEnclosedEnvironment(env)
 		if len(node.Args) != len(funcObj.Parameters) {
 			panic("incorrect count of arguments")
 		}
@@ -221,12 +221,12 @@ func evalCall(node ast.CallExpression, env Environment) object.Object {
 		}
 
 		return EvalStatement(funcObj.Body, funcEnv)
-	case *object.Builtin:
+	case *Builtin:
 		args := []object.Object{}
 		for _, arg := range node.Args {
 			args = append(args, EvalExpression(arg, env))
 		}
-		return funcObj.Fn(args...)
+		return funcObj.Fn(env, args...)
 	default:
 		panic("unknown function type (What the shit?)")
 	}

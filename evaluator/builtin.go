@@ -5,10 +5,19 @@ import (
 	"main/object"
 )
 
-var builtins map[string]*object.Builtin
+type BuiltinFunction func(env Environment, args ...object.Object) object.Object
+
+type Builtin struct {
+	Fn BuiltinFunction
+}
+
+func (b *Builtin) Type() object.ObjectType { return object.BUILTIN_OBJ }
+func (b *Builtin) Inspect() string         { return "builtin function" }
+
+var builtins map[string]*Builtin
 
 func InitBuiltins() {
-	builtins = map[string]*object.Builtin{
+	builtins = map[string]*Builtin{
 		"len":    {Fn: builtin_len},
 		"push":   {Fn: builtin_push},
 		"print":  {Fn: builtin_print},
@@ -18,7 +27,7 @@ func InitBuiltins() {
 	}
 }
 
-func builtin_len(args ...object.Object) object.Object {
+func builtin_len(_ Environment, args ...object.Object) object.Object {
 	if len(args) != 1 {
 		panic("wrong number of arguments in len()")
 	}
@@ -35,7 +44,7 @@ func builtin_len(args ...object.Object) object.Object {
 	panic("argument type to `len` not supported, got " + args[0].Type())
 }
 
-func builtin_push(args ...object.Object) object.Object {
+func builtin_push(_ Environment, args ...object.Object) object.Object {
 	if len(args) != 3 && len(args) != 2 {
 		panic("wrong number of arguments in push()")
 	}
@@ -62,7 +71,7 @@ func builtin_push(args ...object.Object) object.Object {
 	panic("argument type to `push` not supported, got " + args[0].Type())
 }
 
-func builtin_print(args ...object.Object) object.Object {
+func builtin_print(_ Environment, args ...object.Object) object.Object {
 	for _, arg := range args {
 		fmt.Print(arg.Inspect() + " ")
 	}
@@ -70,7 +79,7 @@ func builtin_print(args ...object.Object) object.Object {
 	return &object.NullObj{}
 }
 
-func builtin_filter(args ...object.Object) object.Object {
+func builtin_filter(env Environment, args ...object.Object) object.Object {
 	if len(args) != 2 {
 		panic("wrong number of arguments in filter()")
 	}
@@ -89,7 +98,7 @@ func builtin_filter(args ...object.Object) object.Object {
 
 	result := []object.Object{}
 	for _, elem := range arr.Elements {
-		funcEnv := NewEnvironment()
+		funcEnv := NewEnclosedEnvironment(env)
 		funcEnv.Create(fn.Parameters[0], elem)
 		bool := EvalStatement(fn.Body, funcEnv)
 		if boolObj, ok := bool.(*object.BooleanObj); ok && boolObj.Value {
@@ -100,7 +109,7 @@ func builtin_filter(args ...object.Object) object.Object {
 	return &object.ArrayObj{Elements: result}
 }
 
-func builtin_map(args ...object.Object) object.Object {
+func builtin_map(env Environment, args ...object.Object) object.Object {
 	if len(args) != 2 {
 		panic("wrong number of arguments in map()")
 	}
@@ -119,7 +128,7 @@ func builtin_map(args ...object.Object) object.Object {
 
 	result := []object.Object{}
 	for _, elem := range arr.Elements {
-		funcEnv := NewEnvironment()
+		funcEnv := NewEnclosedEnvironment(env)
 		funcEnv.Create(fn.Parameters[0], elem)
 		mapped := EvalStatement(fn.Body, funcEnv)
 		result = append(result, mapped)
@@ -128,7 +137,7 @@ func builtin_map(args ...object.Object) object.Object {
 	return &object.ArrayObj{Elements: result}
 }
 
-func builtin_reduce(args ...object.Object) object.Object {
+func builtin_reduce(env Environment, args ...object.Object) object.Object {
 	if len(args) != 3 {
 		panic("wrong number of arguments in reduce()")
 	}
@@ -151,7 +160,7 @@ func builtin_reduce(args ...object.Object) object.Object {
 	}
 
 	for _, elem := range arr.Elements {
-		funcEnv := NewEnvironment()
+		funcEnv := NewEnclosedEnvironment(env)
 		funcEnv.Create(fn.Parameters[0], prev)
 		funcEnv.Create(fn.Parameters[1], elem)
 		mapped := EvalStatement(fn.Body, funcEnv)

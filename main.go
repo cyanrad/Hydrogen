@@ -38,13 +38,15 @@ func main() {
 }
 
 func interpretFile(filepath string) {
-	data, err := os.ReadFile(filepath)
+	bytes, err := os.ReadFile(filepath)
 	if err != nil {
 		fmt.Println("Error reading file:", err)
 	}
 
+	data := removeHashComments(string(bytes)) // remove hash comments
+
 	// tokenizing
-	l := lexer.CreateLexer(string(data))
+	l := lexer.CreateLexer(data)
 
 	// parsing
 	p := parser.CreateParser(l)
@@ -84,6 +86,7 @@ func StartRepl(in io.Reader, out io.Writer) {
 			return
 		}
 		line := scanner.Text()
+		line = removeHashComments(line) // remove hash comments
 
 		// lexing
 		l := lexer.CreateLexer(line)

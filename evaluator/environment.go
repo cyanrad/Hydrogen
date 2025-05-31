@@ -1,6 +1,8 @@
 package evaluator
 
-import "main/object"
+import (
+	"main/object"
+)
 
 type Environment struct {
 	Store map[string]object.Object
@@ -16,8 +18,8 @@ func NewEnclosedEnvironment(env Environment) Environment {
 }
 
 func (e *Environment) Create(name string, value object.Object) {
-	if val := e.Get(name); val != nil {
-		panic("variable already exists")
+	if val := e.getInCurrEnv(name); val != nil {
+		panic("variable: " + name + " already exists")
 	}
 	e.Store[name] = value
 }
@@ -37,6 +39,15 @@ func (e *Environment) Get(name string) object.Object {
 		return value
 	} else if e.Outer != nil {
 		return e.Outer.Get(name)
+	} else if builtins[name] != nil {
+		return builtins[name]
+	}
+	return nil
+}
+
+func (e *Environment) getInCurrEnv(name string) object.Object {
+	if value, ok := e.Store[name]; ok {
+		return value
 	} else if builtins[name] != nil {
 		return builtins[name]
 	}

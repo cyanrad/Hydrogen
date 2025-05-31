@@ -30,7 +30,7 @@ func evalLetStatement(stmt ast.LetStatement, env Environment) object.Object {
 	ident := stmt.Identifier.TokenLiteral()
 	existingVar := env.Get(ident)
 	if existingVar != nil {
-		panic("variable already exists")
+		panic("variable: " + ident + " already exists")
 	}
 
 	env.Create(ident, EvalExpression(stmt.Expression, env))

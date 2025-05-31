@@ -5,6 +5,7 @@ import (
 )
 
 func TestBuiltinFunctions(t *testing.T) {
+	InitBuiltins()
 	tests := []struct {
 		input    string
 		expected interface{}

@@ -209,7 +209,7 @@ func evalCall(node ast.CallExpression, env Environment) object.Object {
 		panic("unknown function: " + node.Identifier.TokenLiteral())
 	}
 
-	funcEnv := NewEnvironment()
+	funcEnv := NewEnclosedEnvironment(env)
 	switch funcObj := obj.(type) {
 	case object.FunctionObj:
 		if len(node.Args) != len(funcObj.Parameters) {

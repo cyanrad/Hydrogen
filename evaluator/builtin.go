@@ -5,10 +5,17 @@ import (
 	"main/object"
 )
 
-var builtins = map[string]*object.Builtin{
-	"len":   {Fn: builtin_len},
-	"push":  {Fn: builtin_push},
-	"print": {Fn: builtin_print},
+var builtins map[string]*object.Builtin
+
+func InitBuiltins() {
+	builtins = map[string]*object.Builtin{
+		"len":    {Fn: builtin_len},
+		"push":   {Fn: builtin_push},
+		"print":  {Fn: builtin_print},
+		"filter": {Fn: builtin_filter},
+		"map":    {Fn: builtin_map},
+		"reduce": {Fn: builtin_reduce},
+	}
 }
 
 func builtin_len(args ...object.Object) object.Object {
@@ -61,4 +68,95 @@ func builtin_print(args ...object.Object) object.Object {
 	}
 	fmt.Print("\n")
 	return &object.NullObj{}
+}
+
+func builtin_filter(args ...object.Object) object.Object {
+	if len(args) != 2 {
+		panic("wrong number of arguments in filter()")
+	}
+
+	arr, ok := args[0].(*object.ArrayObj)
+	if !ok {
+		panic("first argument to filter() must be an array")
+	}
+
+	fn, ok := args[1].(object.FunctionObj)
+	if !ok {
+		panic("second argument to filter() must be a function")
+	} else if len(fn.Parameters) != 1 {
+		panic("filter function must take exactly one argument")
+	}
+
+	result := []object.Object{}
+	for _, elem := range arr.Elements {
+		funcEnv := NewEnvironment()
+		funcEnv.Create(fn.Parameters[0], elem)
+		bool := EvalStatement(fn.Body, funcEnv)
+		if boolObj, ok := bool.(*object.BooleanObj); ok && boolObj.Value {
+			result = append(result, elem)
+		}
+	}
+
+	return &object.ArrayObj{Elements: result}
+}
+
+func builtin_map(args ...object.Object) object.Object {
+	if len(args) != 2 {
+		panic("wrong number of arguments in map()")
+	}
+
+	arr, ok := args[0].(*object.ArrayObj)
+	if !ok {
+		panic("first argument to map() must be an array")
+	}
+
+	fn, ok := args[1].(object.FunctionObj)
+	if !ok {
+		panic("second argument to map() must be a function")
+	} else if len(fn.Parameters) != 1 {
+		panic("map function must take exactly one argument")
+	}
+
+	result := []object.Object{}
+	for _, elem := range arr.Elements {
+		funcEnv := NewEnvironment()
+		funcEnv.Create(fn.Parameters[0], elem)
+		mapped := EvalStatement(fn.Body, funcEnv)
+		result = append(result, mapped)
+	}
+
+	return &object.ArrayObj{Elements: result}
+}
+
+func builtin_reduce(args ...object.Object) object.Object {
+	if len(args) != 3 {
+		panic("wrong number of arguments in reduce()")
+	}
+
+	arr, ok := args[0].(*object.ArrayObj)
+	if !ok {
+		panic("first argument to reduce() must be an array")
+	}
+
+	prev, ok := args[1].(object.Object)
+	if !ok {
+		panic("second argument to reduce() must be an object")
+	}
+
+	fn, ok := args[2].(object.FunctionObj)
+	if !ok {
+		panic("third argument to reduce() must be a function")
+	} else if len(fn.Parameters) != 2 {
+		panic("reduce function must take exactly one argument")
+	}
+
+	for _, elem := range arr.Elements {
+		funcEnv := NewEnvironment()
+		funcEnv.Create(fn.Parameters[0], prev)
+		funcEnv.Create(fn.Parameters[1], elem)
+		mapped := EvalStatement(fn.Body, funcEnv)
+		prev = mapped
+	}
+
+	return prev
 }

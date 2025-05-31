@@ -27,6 +27,8 @@ func main() {
 	flag.StringVar(&filepath, "file", "", "Specify entry point")
 	flag.Parse()
 
+	evaluator.InitBuiltins() // initialize built-in functions
+
 	if filepath != "" {
 		interpretFile(filepath)
 	} else {

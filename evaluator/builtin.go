@@ -3,6 +3,7 @@ package evaluator
 import (
 	"fmt"
 	"main/object"
+	"os"
 )
 
 type BuiltinFunction func(env Environment, args ...object.Object) object.Object
@@ -21,6 +22,8 @@ func InitBuiltins() {
 		"len":    {Fn: builtin_len},
 		"push":   {Fn: builtin_push},
 		"print":  {Fn: builtin_print},
+		"exit":   {Fn: builtin_exit},
+		"rest":   {Fn: builtin_rest},
 		"filter": {Fn: builtin_filter},
 		"map":    {Fn: builtin_map},
 		"reduce": {Fn: builtin_reduce},
@@ -77,6 +80,52 @@ func builtin_print(_ Environment, args ...object.Object) object.Object {
 	}
 	fmt.Print("\n")
 	return &object.NullObj{}
+}
+
+func builtin_exit(_ Environment, args ...object.Object) object.Object {
+	if len(args) > 1 {
+		panic("wrong number of arguments in exit()")
+	}
+
+	if len(args) == 0 {
+		fmt.Println("Exiting with code 0")
+		os.Exit(0)
+	} else if intObj, ok := args[0].(*object.IntegerObj); ok {
+		fmt.Printf("Exiting with code %d\n", intObj.Value)
+		os.Exit(int(intObj.Value))
+	} else {
+		panic("argument to exit() must be an integer")
+	}
+
+	return &object.NullObj{}
+}
+
+func builtin_rest(env Environment, args ...object.Object) object.Object {
+	if len(args) != 1 && len(args) != 2 {
+		panic("wrong number of arguments in rest()")
+	}
+
+	arr, ok := args[0].(*object.ArrayObj)
+	if !ok {
+		panic("first argument to rest() must be an array")
+	}
+
+	start := 1
+	if len(args) == 2 {
+		if intObj, ok := args[1].(*object.IntegerObj); ok {
+			start = int(intObj.Value)
+		} else {
+			panic("second argument to rest() must be an integer")
+		}
+	}
+
+	if len(arr.Elements) == 0 {
+		return &object.ArrayObj{Elements: []object.Object{}}
+	}
+
+	result := make([]object.Object, len(arr.Elements)-start)
+	copy(result, arr.Elements[start:])
+	return &object.ArrayObj{Elements: result}
 }
 
 func builtin_filter(env Environment, args ...object.Object) object.Object {

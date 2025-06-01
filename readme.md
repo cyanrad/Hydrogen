@@ -15,6 +15,13 @@ go run .
 ```
 
 ### Library Program
+you can run Hydrogen programs from filse using the `-file` flag.
+```bash
+go run . -file library.hy
+```
+
+The following is a simple library management toy program written in Hydrogen.
+
 ```js
 # Basic Library Management System - Showcasing functions, arrays, hashes, and functional style
 

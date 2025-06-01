@@ -119,7 +119,7 @@ type ErrorObj struct {
 
 func (e ErrorObj) Type() ObjectType { return ERROR_OBJ }
 func (e ErrorObj) Inspect() string {
-	output := "Error: " + e.Message + "\n"
+	output := e.Message + "\n"
 	for _, subError := range e.SubErrors {
 		output += "\t" + subError.Inspect() + "\n"
 	}

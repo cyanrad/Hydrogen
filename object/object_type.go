@@ -1,6 +1,9 @@
 package object
 
+type ObjectType string
+
 const (
+	ERROR_OBJ    = "ERROR_OBJ"   // error object
 	INT_OBJ      = "INT_OBJ"     // integers: 1,2,3,...
 	BOOLEAN_OBJ  = "BOOLEAN_OBJ" // true or false
 	NULL_OBJ     = "NULL_OBJ"
@@ -10,5 +13,3 @@ const (
 	ARRAY_OBJ    = "ARRAY_OBJ"    // [1,2,3]
 	HASH_OBJ     = "HASH_OBJ"     // {"key": "value"}
 )
-
-type ObjectType string

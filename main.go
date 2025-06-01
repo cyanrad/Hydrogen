@@ -93,14 +93,23 @@ func StartRepl(in io.Reader, out io.Writer) {
 
 		// parsing
 		p := parser.CreateParser(l)
-		program, err := p.ParseProgram()
-		if len(err) != 0 {
-			printParserErrors(out, err)
+		program, errs := p.ParseProgram()
+		if len(errs) != 0 {
+			printParserErrors(out, errs)
 			continue
 		}
 
 		// interpreting
-		evaluated := evaluator.Eval(program, env)
+		evaluated, err := evaluator.Eval(program, env)
+		if !err.Ok() {
+			if err.Type() == object.ERROR_OBJ {
+				io.WriteString(out, "Error: "+err.Inspect()+"\n")
+			} else {
+				io.WriteString(out, "Unknown error occurred\n")
+			}
+			continue
+		}
+
 		if evaluated != nil && evaluated.Type() != object.NULL_OBJ {
 			io.WriteString(out, evaluated.Inspect())
 			io.WriteString(out, "\n")

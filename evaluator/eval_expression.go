@@ -6,7 +6,7 @@ import (
 	"strconv"
 )
 
-func EvalExpression(n ast.Expression, env Environment) object.Object {
+func EvalExpression(n ast.Expression, env Environment) (object.Object, object.ErrorObj) {
 	switch exp := n.(type) {
 	case ast.IntExpression:
 		return evalInteger(exp)
@@ -37,30 +37,33 @@ func EvalExpression(n ast.Expression, env Environment) object.Object {
 	}
 }
 
-func evalInteger(node ast.IntExpression) object.Object {
+func evalInteger(node ast.IntExpression) (object.Object, object.ErrorObj) {
 	value, err := strconv.ParseInt(node.TokenLiteral(), 0, 64) // highly unlikely to fail
 	if err != nil {
-		panic("could not parse integer")
+		return object.NullObj{}, object.NewErrorObj("failed to parse integer: " + err.Error())
 	}
 
-	return &object.IntegerObj{Value: value}
+	return &object.IntegerObj{Value: value}, object.EmptyErrorObj()
 }
 
-func evalBoolean(node ast.BooleanExpression) object.Object {
+func evalBoolean(node ast.BooleanExpression) (object.Object, object.ErrorObj) {
 	if node.TokenLiteral() == "true" {
-		return &object.BooleanObj{Value: true}
+		return &object.BooleanObj{Value: true}, object.EmptyErrorObj()
 	} else if node.TokenLiteral() == "false" {
-		return &object.BooleanObj{Value: false}
+		return &object.BooleanObj{Value: false}, object.EmptyErrorObj()
 	}
-	panic("unknown boolean value")
+	return object.NullObj{}, object.NewErrorObj("unknown boolean value: " + node.TokenLiteral())
 }
 
-func evalString(node ast.StringExpression) object.Object {
-	return &object.StringObj{Value: node.TokenLiteral()}
+func evalString(node ast.StringExpression) (object.Object, object.ErrorObj) {
+	return &object.StringObj{Value: node.TokenLiteral()}, object.EmptyErrorObj()
 }
 
-func evalPrefix(node ast.PrefixExpression, env Environment) object.Object {
-	exp := EvalExpression(node.Expression, env)
+func evalPrefix(node ast.PrefixExpression, env Environment) (object.Object, object.ErrorObj) {
+	exp, err := EvalExpression(node.Expression, env)
+	if !err.Ok() {
+		return object.NullObj{}, object.NewErrorObj("failed to evaluate prefix expression", err)
+	}
 
 	if intexp, ok := exp.(*object.IntegerObj); ok {
 		switch node.TokenLiteral() {
@@ -71,60 +74,67 @@ func evalPrefix(node ast.PrefixExpression, env Environment) object.Object {
 		case "--":
 			intexp.Value -= 1
 		default:
-			panic("unknown prefix operator")
+			return object.NullObj{}, object.NewErrorObj("unknown int prefix operator: " + node.TokenLiteral())
 		}
 
-		return intexp
+		return intexp, object.EmptyErrorObj()
 	} else if boolExp, ok := exp.(*object.BooleanObj); ok {
 		switch node.TokenLiteral() {
 		case "!":
 			boolExp.Value = !boolExp.Value
 		default:
-			panic("unknown prefix operator")
+			return object.NullObj{}, object.NewErrorObj("unknown bool prefix operator: " + node.TokenLiteral())
 		}
 
-		return boolExp
+		return boolExp, object.EmptyErrorObj()
 	} else {
-		panic("unknown expression type")
+		return object.NullObj{}, object.NewErrorObj("unknown prefix expression type: " + node.TokenLiteral())
 	}
 }
 
-func evalInfix(node ast.InfixExpression, env Environment) object.Object {
-	left := EvalExpression(node.Left, env)
-	right := EvalExpression(node.Right, env)
+func evalInfix(node ast.InfixExpression, env Environment) (object.Object, object.ErrorObj) {
+	left, err := EvalExpression(node.Left, env)
+	if !err.Ok() {
+		return object.NullObj{}, object.NewErrorObj("failed to evaluate left expression", err)
+	}
+
+	right, err := EvalExpression(node.Right, env)
+	if !err.Ok() {
+		return object.NullObj{}, object.NewErrorObj("failed to evaluate infix right expression", err)
+	}
 
 	leftInt, leftOk := left.(*object.IntegerObj)
 	rightInt, rightOk := right.(*object.IntegerObj)
 	if leftOk && rightOk {
 		switch node.TokenLiteral() {
 		case "+":
-			return &object.IntegerObj{Value: leftInt.Value + rightInt.Value}
+			return &object.IntegerObj{Value: leftInt.Value + rightInt.Value}, object.EmptyErrorObj()
 		case "-":
-			return &object.IntegerObj{Value: leftInt.Value - rightInt.Value}
+			return &object.IntegerObj{Value: leftInt.Value - rightInt.Value}, object.EmptyErrorObj()
 		case "*":
-			return &object.IntegerObj{Value: leftInt.Value * rightInt.Value}
+			return &object.IntegerObj{Value: leftInt.Value * rightInt.Value}, object.EmptyErrorObj()
 		case "/":
-			return &object.IntegerObj{Value: leftInt.Value / rightInt.Value}
+			return &object.IntegerObj{Value: leftInt.Value / rightInt.Value}, object.EmptyErrorObj()
 		case "%":
-			return &object.IntegerObj{Value: leftInt.Value % rightInt.Value}
+			return &object.IntegerObj{Value: leftInt.Value % rightInt.Value}, object.EmptyErrorObj()
 		case "<":
-			return &object.BooleanObj{Value: leftInt.Value < rightInt.Value}
+			return &object.BooleanObj{Value: leftInt.Value < rightInt.Value}, object.EmptyErrorObj()
 		case "<=":
-			return &object.BooleanObj{Value: leftInt.Value <= rightInt.Value}
+			return &object.BooleanObj{Value: leftInt.Value <= rightInt.Value}, object.EmptyErrorObj()
 		case ">":
-			return &object.BooleanObj{Value: leftInt.Value > rightInt.Value}
+			return &object.BooleanObj{Value: leftInt.Value > rightInt.Value}, object.EmptyErrorObj()
 		case ">=":
-			return &object.BooleanObj{Value: leftInt.Value >= rightInt.Value}
+			return &object.BooleanObj{Value: leftInt.Value >= rightInt.Value}, object.EmptyErrorObj()
 		case "==":
-			return &object.BooleanObj{Value: leftInt.Value == rightInt.Value}
+			return &object.BooleanObj{Value: leftInt.Value == rightInt.Value}, object.EmptyErrorObj()
 		case "!=":
-			return &object.BooleanObj{Value: leftInt.Value != rightInt.Value}
+			return &object.BooleanObj{Value: leftInt.Value != rightInt.Value}, object.EmptyErrorObj()
 		case "&":
-			return &object.IntegerObj{Value: leftInt.Value & rightInt.Value}
+			return &object.IntegerObj{Value: leftInt.Value & rightInt.Value}, object.EmptyErrorObj()
 		case "|":
-			return &object.IntegerObj{Value: leftInt.Value | rightInt.Value}
+			return &object.IntegerObj{Value: leftInt.Value | rightInt.Value}, object.EmptyErrorObj()
 		default:
-			panic("unknown infix operator: " + node.TokenLiteral())
+			return &object.NullObj{}, object.NewErrorObj("unknown int infix operator: " + node.TokenLiteral())
 		}
 	}
 
@@ -133,15 +143,15 @@ func evalInfix(node ast.InfixExpression, env Environment) object.Object {
 	if leftOk && rightOk {
 		switch node.TokenLiteral() {
 		case "==":
-			return &object.BooleanObj{Value: leftBool.Value == rightBool.Value}
+			return &object.BooleanObj{Value: leftBool.Value == rightBool.Value}, object.EmptyErrorObj()
 		case "!=":
-			return &object.BooleanObj{Value: leftBool.Value != rightBool.Value}
+			return &object.BooleanObj{Value: leftBool.Value != rightBool.Value}, object.EmptyErrorObj()
 		case "&&":
-			return &object.BooleanObj{Value: leftBool.Value && rightBool.Value}
+			return &object.BooleanObj{Value: leftBool.Value && rightBool.Value}, object.EmptyErrorObj()
 		case "||":
-			return &object.BooleanObj{Value: leftBool.Value || rightBool.Value}
+			return &object.BooleanObj{Value: leftBool.Value || rightBool.Value}, object.EmptyErrorObj()
 		default:
-			panic("unknown infix operator")
+			return &object.NullObj{}, object.NewErrorObj("unknown bool infix operator: " + node.TokenLiteral())
 		}
 	}
 
@@ -150,48 +160,63 @@ func evalInfix(node ast.InfixExpression, env Environment) object.Object {
 	if leftOk && rightOk {
 		switch node.TokenLiteral() {
 		case "==":
-			return &object.BooleanObj{Value: leftStr.Value == rightStr.Value}
+			return &object.BooleanObj{Value: leftStr.Value == rightStr.Value}, object.EmptyErrorObj()
 		case "!=":
-			return &object.BooleanObj{Value: leftStr.Value != rightStr.Value}
+			return &object.BooleanObj{Value: leftStr.Value != rightStr.Value}, object.EmptyErrorObj()
 		case "+":
-			return &object.StringObj{Value: leftStr.Value + rightStr.Value}
+			return &object.StringObj{Value: leftStr.Value + rightStr.Value}, object.EmptyErrorObj()
 		default:
-			panic("unknown infix operator")
+			return &object.NullObj{}, object.NewErrorObj("unknown string infix operator: " + node.TokenLiteral())
 		}
 	}
 
-	panic("failed to match left and right types")
+	lts := string(left.Type())
+	rts := string(right.Type())
+	return &object.NullObj{}, object.NewErrorObj("unknown infix expression types: " +
+		node.TokenLiteral() + " between " + lts + " and " + rts)
 }
 
-func evalIf(node ast.IfExpression, env Environment) object.Object {
+func evalIf(node ast.IfExpression, env Environment) (object.Object, object.ErrorObj) {
 	tempEnv := NewEnclosedEnvironment(env)
 
 	// looping over the conditions, return the block of the first condition that evaluates to true
 	for i, condition := range node.Conditions {
-		cond := EvalExpression(condition, env)
+		cond, err := EvalExpression(condition, env)
+		if !err.Ok() {
+			return object.NullObj{}, object.NewErrorObj("failed to evaluate if condition", err)
+		}
+
 		if boolCond, ok := cond.(*object.BooleanObj); ok && boolCond.Value {
-			return EvalStatement(node.Blocks[i], tempEnv)
+			body, err := EvalStatement(node.Blocks[i], tempEnv)
+			if !err.Ok() {
+				return object.NullObj{}, object.NewErrorObj("failed to evaluate if block", err)
+			}
+			return body, object.EmptyErrorObj()
 		}
 	}
 
 	// the else condition
 	if len(node.Blocks) > len(node.Conditions) {
-		return EvalStatement(node.Blocks[len(node.Blocks)-1], tempEnv)
+		body, err := EvalStatement(node.Blocks[len(node.Blocks)-1], tempEnv)
+		if !err.Ok() {
+			return object.NullObj{}, object.NewErrorObj("failed to evaluate else block", err)
+		}
+		return body, object.EmptyErrorObj()
 	}
 
-	return &object.NullObj{}
+	return &object.NullObj{}, object.EmptyErrorObj()
 }
 
-func evalIdentifier(node ast.IdentifierExpression, env Environment) object.Object {
+func evalIdentifier(node ast.IdentifierExpression, env Environment) (object.Object, object.ErrorObj) {
 	// check if the identifier is a variable in the environment
 	if obj := env.Get(node.TokenLiteral()); obj != nil {
-		return obj
+		return obj, object.EmptyErrorObj()
 	}
 
-	panic("unknown identifier: " + node.TokenLiteral())
+	return &object.NullObj{}, object.NewErrorObj("unknown identifier: " + node.TokenLiteral())
 }
 
-func evalFunction(node ast.FunctionExpression) object.Object {
+func evalFunction(node ast.FunctionExpression) (object.Object, object.ErrorObj) {
 	args := []string{}
 	for _, arg := range node.Args {
 		args = append(args, arg.TokenLiteral())
@@ -200,23 +225,34 @@ func evalFunction(node ast.FunctionExpression) object.Object {
 	return object.FunctionObj{
 		Parameters: args,
 		Body:       node.Body,
-	}
+	}, object.EmptyErrorObj()
 }
 
-func evalCall(node ast.CallExpression, env Environment) object.Object {
+func evalCall(node ast.CallExpression, env Environment) (object.Object, object.ErrorObj) {
 	obj := env.Get(node.Identifier.TokenLiteral())
 	if obj == nil {
-		panic("unknown function: " + node.Identifier.TokenLiteral())
+		return &object.NullObj{}, object.NewErrorObj("unknown function: " + node.Identifier.TokenLiteral())
 	}
 
 	switch funcObj := obj.(type) {
 	case object.FunctionObj:
 		funcEnv := NewEnclosedEnvironment(env)
+
 		if len(node.Args) != len(funcObj.Parameters) {
-			panic("incorrect count of arguments")
+			return &object.NullObj{}, object.NewErrorObj(
+				"wrong number of arguments: expected " + strconv.Itoa(len(funcObj.Parameters)) +
+					", got " + strconv.Itoa(len(node.Args)),
+			)
 		}
+
 		for i, arg := range node.Args {
-			exp := EvalExpression(arg, env)
+			exp, err := EvalExpression(arg, env)
+			if !err.Ok() {
+				return &object.NullObj{}, object.NewErrorObj(
+					"failed to evaluate argument for function '"+node.Identifier.TokenLiteral()+"'", err,
+				)
+			}
+
 			funcEnv.Create(funcObj.Parameters[i], exp)
 		}
 
@@ -224,28 +260,46 @@ func evalCall(node ast.CallExpression, env Environment) object.Object {
 	case *Builtin:
 		args := []object.Object{}
 		for _, arg := range node.Args {
-			args = append(args, EvalExpression(arg, env))
+			val, err := EvalExpression(arg, env)
+			if !err.Ok() {
+				return &object.NullObj{}, object.NewErrorObj(
+					"failed to evaluate argument for builtin function '"+node.Identifier.TokenLiteral()+"'", err,
+				)
+			}
+
+			args = append(args, val)
 		}
+
 		return funcObj.Fn(env, args...)
 	default:
-		panic("unknown function type (What the shit?)")
+		return &object.NullObj{}, object.NewErrorObj("unknown function type (what the shit?)")
 	}
 
 }
 
-func evalArray(node ast.ArrayExpression, env Environment) object.Object {
+func evalArray(node ast.ArrayExpression, env Environment) (object.Object, object.ErrorObj) {
 	elems := []object.Object{}
 	for _, e := range node.Elems {
-		obj := EvalExpression(e, env)
+		obj, err := EvalExpression(e, env)
+		if !err.Ok() {
+			return &object.NullObj{}, object.NewErrorObj("failed to evaluate array element", err)
+		}
 		elems = append(elems, obj)
 	}
 
-	return &object.ArrayObj{Elements: elems}
+	return &object.ArrayObj{Elements: elems}, object.EmptyErrorObj()
 }
 
-func evalIndex(node ast.IndexExpression, env Environment) object.Object {
-	exp := EvalExpression(node.Exp, env)
-	index := EvalExpression(node.Index, env)
+func evalIndex(node ast.IndexExpression, env Environment) (object.Object, object.ErrorObj) {
+	exp, err := EvalExpression(node.Exp, env)
+	if !err.Ok() {
+		return &object.NullObj{}, object.NewErrorObj("failed to evaluate container identifier", err)
+	}
+
+	index, err := EvalExpression(node.Index, env)
+	if !err.Ok() {
+		return &object.NullObj{}, object.NewErrorObj("failed to evaluate container index", err)
+	}
 
 	switch indexObj := index.(type) {
 	case *object.IntegerObj:
@@ -259,63 +313,79 @@ func evalIndex(node ast.IndexExpression, env Environment) object.Object {
 	}
 }
 
-func evalIntegerIndex(exp object.Object, index *object.IntegerObj) object.Object {
+func evalIntegerIndex(exp object.Object, index *object.IntegerObj) (object.Object, object.ErrorObj) {
 	switch expObj := exp.(type) {
 	case *object.ArrayObj:
 		if index.Value >= int64(len(expObj.Elements)) {
-			return &object.NullObj{}
+			return &object.NullObj{}, object.NewErrorObj(
+				"index out of bounds, attempted to access " + index.Inspect() +
+					" in array of length " + strconv.Itoa(len(expObj.Elements)),
+			)
 		}
-		return expObj.Elements[index.Value]
+		return expObj.Elements[index.Value], object.EmptyErrorObj()
 	case *object.StringObj:
 		if index.Value >= int64(len(expObj.Value)) {
-			return &object.NullObj{}
+			return &object.NullObj{}, object.NewErrorObj(
+				"index out of bounds, attempted to access " + index.Inspect() +
+					" in a string of length " + strconv.Itoa(len(expObj.Value)),
+			)
 		}
-		return &object.StringObj{Value: string(expObj.Value[index.Value])}
+		return &object.StringObj{Value: string(expObj.Value[index.Value])}, object.EmptyErrorObj()
 	case *object.HashObj:
 		if pair, ok := expObj.Pairs[index.HashKey()]; ok {
-			return pair.Value
+			return pair.Value, object.EmptyErrorObj()
 		}
-		return &object.NullObj{}
+		return &object.NullObj{}, object.NewErrorObj("key " + index.Inspect() + " not found in hash")
+
 	default:
-		panic("unindexable data type")
+		return &object.NullObj{}, object.NewErrorObj("unindexable data type using int: " + string(exp.Type()))
 	}
 }
 
-func evalBoolIndex(exp object.Object, index *object.BooleanObj) object.Object {
+func evalBoolIndex(exp object.Object, index *object.BooleanObj) (object.Object, object.ErrorObj) {
 	switch expObj := exp.(type) {
 	case *object.HashObj:
 		if pair, ok := expObj.Pairs[index.HashKey()]; ok {
-			return pair.Value
+			return pair.Value, object.EmptyErrorObj()
 		}
-		return &object.NullObj{}
+		return &object.NullObj{}, object.NewErrorObj("key " + index.Inspect() + " not found in hash")
 	default:
-		panic("unindexable data type")
+		return &object.NullObj{}, object.NewErrorObj("unindexable data type using bool: " + string(exp.Type()))
 	}
 }
 
-func evalStringIndex(exp object.Object, index *object.StringObj) object.Object {
+func evalStringIndex(exp object.Object, index *object.StringObj) (object.Object, object.ErrorObj) {
 	switch expObj := exp.(type) {
 	case *object.HashObj:
 		if pair, ok := expObj.Pairs[index.HashKey()]; ok {
-			return pair.Value
+			return pair.Value, object.EmptyErrorObj()
 		}
-		return &object.NullObj{}
+		return &object.NullObj{}, object.NewErrorObj("key '" + index.Inspect() + "' not found in hash")
 	default:
-		panic("unindexable data type")
+		return &object.NullObj{}, object.NewErrorObj("unindexable data type using string: " + string(exp.Type()))
 	}
 }
 
-func evalHash(node ast.HashExpression, env Environment) object.Object {
+func evalHash(node ast.HashExpression, env Environment) (object.Object, object.ErrorObj) {
 	elems := map[object.HashKey]object.HashPair{}
 	for _, kvp := range node.Elems {
-		key := EvalExpression(kvp.Key, env)
+		key, err := EvalExpression(kvp.Key, env)
+		if !err.Ok() {
+			return &object.NullObj{}, object.NewErrorObj("failed to evaluate hash key", err)
+		}
+
 		hashKey, ok := key.(object.Hashable)
 		if !ok {
 			panic("unhashable key type")
 		}
-		value := EvalExpression(kvp.Value, env)
+
+		value, err := EvalExpression(kvp.Value, env)
+		if !err.Ok() {
+			return &object.NullObj{}, object.NewErrorObj("failed to evaluate hash value", err)
+		}
+
 		elems[hashKey.HashKey()] = object.HashPair{Key: key, Value: value}
 	}
 
-	return &object.HashObj{Pairs: elems}
+	return &object.HashObj{Pairs: elems}, object.EmptyErrorObj()
 }

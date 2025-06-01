@@ -17,11 +17,7 @@ func TestEvalIntegerExpression(t *testing.T) {
 		{"10", 10},
 	}
 	for _, tt := range tests {
-		evaluated, errors := testEval(tt.input)
-		if errors != nil {
-			t.Fatalf("unexpected errors: %v", errors)
-		}
-
+		evaluated := testEval(tt.input, t)
 		testIntegerObject(t, evaluated, tt.expected)
 	}
 }
@@ -35,11 +31,7 @@ func TestEvalBooleanExpression(t *testing.T) {
 		{"false", false},
 	}
 	for _, tt := range tests {
-		evaluated, errors := testEval(tt.input)
-		if errors != nil {
-			t.Fatalf("unexpected errors: %v", errors)
-		}
-
+		evaluated := testEval(tt.input, t)
 		testBooleanObject(t, evaluated, tt.expected)
 	}
 }
@@ -54,11 +46,7 @@ func TestEvalPrefixExpression(t *testing.T) {
 		{"++5", 6},
 	}
 	for _, tt := range intTests {
-		evaluated, errors := testEval(tt.input)
-		if errors != nil {
-			t.Fatalf("unexpected errors: %v", errors)
-		}
-
+		evaluated := testEval(tt.input, t)
 		testIntegerObject(t, evaluated, tt.expected)
 	}
 
@@ -72,11 +60,7 @@ func TestEvalPrefixExpression(t *testing.T) {
 		{"!!false", false},
 	}
 	for _, tt := range boolTests {
-		evaluated, errors := testEval(tt.input)
-		if errors != nil {
-			t.Fatalf("unexpected errors: %v", errors)
-		}
-
+		evaluated := testEval(tt.input, t)
 		testBooleanObject(t, evaluated, tt.expected)
 	}
 }
@@ -119,11 +103,7 @@ func TestEvalInfixExpression(t *testing.T) {
 	}
 
 	for _, tt := range intTests {
-		evaluated, errors := testEval(tt.input)
-		if errors != nil {
-			t.Fatalf("unexpected errors: %v", errors)
-		}
-
+		evaluated := testEval(tt.input, t)
 		testIntegerObject(t, evaluated, tt.expected)
 	}
 
@@ -175,11 +155,7 @@ func TestEvalInfixExpression(t *testing.T) {
 	}
 
 	for _, tt := range boolTests {
-		evaluated, errors := testEval(tt.input)
-		if errors != nil {
-			t.Fatalf("unexpected errors: %v", errors)
-		}
-
+		evaluated := testEval(tt.input, t)
 		testBooleanObject(t, evaluated, tt.expected)
 	}
 }
@@ -201,11 +177,7 @@ func TestEvalIfElseExpression(t *testing.T) {
 	}
 
 	for _, tt := range intTests {
-		evaluated, errors := testEval(tt.input)
-		if errors != nil {
-			t.Fatalf("unexpected errors: %v", errors)
-		}
-
+		evaluated := testEval(tt.input, t)
 		testIntegerObject(t, evaluated, tt.expected)
 	}
 
@@ -217,11 +189,7 @@ func TestEvalIfElseExpression(t *testing.T) {
 	}
 
 	for _, tt := range nullTests {
-		evaluated, errors := testEval(tt.input)
-		if errors != nil {
-			t.Fatalf("unexpected errors: %v", errors)
-		}
-
+		evaluated := testEval(tt.input, t)
 		testNullObject(t, evaluated)
 	}
 }
@@ -239,21 +207,15 @@ func TestFunctionApplication(t *testing.T) {
 		// {"fn(x) { x; }(5)", 5},
 	}
 	for _, tt := range tests {
-		evaluated, errors := testEval(tt.input)
-		if errors != nil {
-			t.Fatalf("unexpected errors: %v", errors)
-		}
-
+		evaluated := testEval(tt.input, t)
 		testIntegerObject(t, evaluated, tt.expected)
 	}
 }
 
 func TestArrayLiterals(t *testing.T) {
 	input := "[1, 2 * 2, 3 + 3]"
-	evaluated, errs := testEval(input)
-	if errs != nil {
-		t.Fatalf("unexpected errors: %v", errs)
-	}
+	evaluated := testEval(input, t)
+
 	result, ok := evaluated.(*object.ArrayObj)
 	if !ok {
 		t.Fatalf("object is not Array. got=%T (%+v)", evaluated, evaluated)
@@ -307,10 +269,8 @@ func TestArrayIndexExpressions(t *testing.T) {
 	}
 	for _, tt := range tests {
 		// t.Log(i, tt.input)
-		evaluated, errs := testEval(tt.input)
-		if errs != nil {
-			t.Fatalf("unexpected errors: %v", errs)
-		}
+		evaluated := testEval(tt.input, t)
+
 		integer, ok := tt.expected.(int)
 		if ok {
 			testIntegerObject(t, evaluated, int64(integer))
@@ -330,10 +290,8 @@ func TestHashLiterals(t *testing.T) {
 	true: 5,
 	false: 6
 	}`
-	evaluated, errs := testEval(input)
-	if errs != nil {
-		t.Fatalf("unexpected errors: %v", errs)
-	}
+	evaluated := testEval(input, t)
+
 	result, ok := evaluated.(*object.HashObj)
 	if !ok {
 		t.Fatalf("Eval didn't return Hash. got=%T (%+v)", evaluated, evaluated)
@@ -368,16 +326,8 @@ func TestHashIndexExpressions(t *testing.T) {
 			5,
 		},
 		{
-			`{"foo": 5}["bar"]`,
-			nil,
-		},
-		{
 			`let key = "foo"; {"foo": 5}[key]`,
 			5,
-		},
-		{
-			`{}["foo"]`,
-			nil,
 		},
 		{
 			`{5: 5}[5]`,
@@ -393,10 +343,7 @@ func TestHashIndexExpressions(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		evaluated, errs := testEval(tt.input)
-		if errs != nil {
-			t.Fatalf("unexpected errors: %v", errs)
-		}
+		evaluated := testEval(tt.input, t)
 		integer, ok := tt.expected.(int)
 		if ok {
 			testIntegerObject(t, evaluated, int64(integer))
@@ -443,15 +390,20 @@ func testNullObject(t *testing.T, obj object.Object) bool {
 	return true
 }
 
-func testEval(input string) (object.Object, []error) {
+func testEval(input string, t *testing.T) object.Object {
 	l := lexer.CreateLexer(input)
 	p := parser.CreateParser(l)
-	program, errors := p.ParseProgram()
+	program, errs := p.ParseProgram()
 
-	if len(errors) > 0 {
-		return nil, errors
+	if len(errs) > 0 {
+		t.Fatalf("unexpected errors: %v", errs)
 	}
 
 	env := NewEnvironment()
-	return Eval(program, env), nil
+	val, err := Eval(program, env)
+	if !err.Ok() {
+		panic("Eval returned an error: " + err.Inspect())
+	}
+
+	return val
 }

@@ -13,11 +13,7 @@ func TestLetStatements(t *testing.T) {
 		{"let a = 5; let b = a; let c = a + b + 5; c;", 15},
 	}
 	for _, tt := range tests {
-		obj, err := testEval(tt.input)
-		if err != nil {
-			t.Fatalf("unexpected errors: %v", err)
-		}
-
+		obj := testEval(tt.input, t)
 		testIntegerObject(t, obj, tt.expected)
 	}
 }

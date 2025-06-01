@@ -16,7 +16,7 @@ func TestBuiltinFunctions(t *testing.T) {
 		{"let test = {}; push(test, 1, 2); len(test)", 1},
 	}
 	for _, tt := range tests {
-		evaluated, _ := testEval(tt.input)
+		evaluated := testEval(tt.input, t)
 		switch expected := tt.expected.(type) {
 		case int:
 			testIntegerObject(t, evaluated, int64(expected))

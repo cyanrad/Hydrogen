@@ -111,3 +111,34 @@ func (h HashObj) Inspect() string {
 	}
 	return "{" + strings.Join(pairs, ", ") + "}"
 }
+
+type ErrorObj struct {
+	Message   string
+	SubErrors []ErrorObj
+}
+
+func (e ErrorObj) Type() ObjectType { return ERROR_OBJ }
+func (e ErrorObj) Inspect() string {
+	output := "Error: " + e.Message + "\n"
+	for _, subError := range e.SubErrors {
+		output += "\t" + subError.Inspect() + "\n"
+	}
+	return output
+}
+func (e ErrorObj) Ok() bool {
+	return len(e.SubErrors) == 0 && e.Message == ""
+}
+
+func NewErrorObj(message string, subErrors ...ErrorObj) ErrorObj {
+	return ErrorObj{
+		Message:   message,
+		SubErrors: subErrors,
+	}
+}
+
+func EmptyErrorObj() ErrorObj {
+	return ErrorObj{
+		Message:   "",
+		SubErrors: []ErrorObj{},
+	}
+}

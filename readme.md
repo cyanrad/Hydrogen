@@ -4,6 +4,16 @@ A simple python-like toy programming language that takes inspiration from functi
 ## Examples
 This is an example that showcases the basic features of the language. 
 
+### REPL
+You can use the basic REPL to evaluate expressions and see results immediately.
+```bash
+git clone https://github.com/cyanrad/Hydrogen
+cd Hydrogen
+go run .
+>> print("Hello, World!")
+"Hello, World!"
+```
+
 ### Library Program
 ```js
 # Basic Library Management System - Showcasing functions, arrays, hashes, and functional style

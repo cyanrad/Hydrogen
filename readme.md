@@ -1,5 +1,7 @@
 # Hydrogen
-![Hydrogen](https://raw.githubusercontent.com/cyanrad/Hydrogen/refs/heads/master/common/src/images/hydrogen-dark.png "Hydrogen")
+<p align="center">
+  <img src="https://raw.githubusercontent.com/cyanrad/Hydrogen/refs/heads/master/common/src/images/hydrogen-dark.png" alt="Logo" width="100"/>
+</p>
 A simple python-like toy programming language that takes inspiration from functional languages.
 
 ## Examples

@@ -1,5 +1,5 @@
 # Hydrogen
-![Hydrogen](https://github.com/cyanrad/Hydrogen/raw/master/src/common/images/hydrogen-dark.png "Hydrogen")
+![Hydrogen](https://raw.githubusercontent.com/cyanrad/Hydrogen/refs/heads/master/common/src/images/hydrogen-dark.png "Hydrogen")
 A simple python-like toy programming language that takes inspiration from functional languages.
 
 ## Examples

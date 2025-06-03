@@ -14,6 +14,11 @@ func Eval(p ast.Program, env Environment) (object.Object, object.ErrorObj) {
 		if !err.Ok() {
 			return object.NullObj{}, err
 		}
+
+		// halt if statement is a return statement
+		if _, ok := statement.(ast.ReturnStatement); ok {
+			return lastStatement, object.EmptyErrorObj()
+		}
 	}
 
 	return lastStatement, object.EmptyErrorObj()
